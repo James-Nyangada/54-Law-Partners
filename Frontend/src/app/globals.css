@@ -1,0 +1,142 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   54 Law Partners — design tokens
+   Palette and motion constants from the landing page design spec.
+--------------------------------------------------------------------------- */
+
+@theme {
+  /* Palette */
+  --color-ink: #15191c;
+  --color-ivory: #f5f1ea;
+  --color-red-earth: #a8502f;
+  --color-ochre: #d9a36b;
+
+  /* Muted ivory for supporting copy */
+  --color-ivory-muted: #a7a49e;
+
+  /* Typefaces */
+  --font-serif: var(--font-source-serif), ui-serif, Georgia, serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /* The single easing curve used across the whole page */
+  --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Durations from the motion system */
+  --duration-entrance: 900ms;
+  --duration-reveal: 1400ms;
+  --duration-cursor: 300ms;
+}
+
+/* Touch screens, and anything narrower than the two-column layout, get the
+   compact treatment: no hover effects, permanent thumbnails, label bars. */
+@custom-variant compact {
+  @media (hover: none), (max-width: 1023.98px) {
+    @slot;
+  }
+}
+
+@custom-variant roomy {
+  @media (hover: hover) and (min-width: 1024px) {
+    @slot;
+  }
+}
+
+:root {
+  color-scheme: dark;
+  /* Height of the slim header, for anything that sticks beneath it. */
+  --header-h: 4.1875rem;
+}
+
+html {
+  /* Lenis drives the scroll; never let the browser fight it. */
+  scroll-behavior: auto;
+}
+
+body {
+  background-color: var(--color-ink);
+  color: var(--color-ivory);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Lenis ------------------------------------------------------------------ */
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* Scroll is locked until the opening sequence releases it. */
+html[data-intro="loading"] body,
+html[data-intro="revealing"] body {
+  overflow: hidden;
+}
+
+/* Signature move 1 — mask reveal ----------------------------------------- */
+
+.line-mask {
+  display: block;
+  overflow: hidden;
+  /* Room for descenders so the mask never clips a "g" or "y". */
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+}
+
+.line-mask > span {
+  display: block;
+  will-change: transform;
+}
+
+/* Elements that animate in start hidden so there is no flash before GSAP
+   takes over. The `is-static` class is applied when motion is reduced. */
+
+[data-anim] {
+  visibility: hidden;
+}
+
+/* When motion is reduced, or when JavaScript never arrives, show everything. */
+.motion-static [data-anim] {
+  visibility: visible;
+}
+
+/* Focus ------------------------------------------------------------------ */
+
+/* In the base layer, so a utility such as focus-visible:outline-none on a
+   form field can override it. Unlayered CSS would beat every utility. */
+@layer base {
+  :focus-visible {
+    outline: 1px solid var(--color-ochre);
+    outline-offset: 4px;
+  }
+
+  ::selection {
+    background-color: var(--color-red-earth);
+    color: var(--color-ivory);
+  }
+}
+
+/* Reduced motion --------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
