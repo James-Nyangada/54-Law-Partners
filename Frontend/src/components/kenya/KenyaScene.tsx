@@ -2,37 +2,20 @@
 
 import { useEffect, useRef } from "react";
 import { ensureGsap, EASE, prefersReducedMotion } from "@/lib/motion";
+import { useLocale } from "@/i18n/useLocale";
 
-/** Placeholder wording in the spec's three ideas; confirm with the firm. */
-const PANELS = [
-  {
-    eyebrow: "01 · Foundation",
-    lines: ["Kenya is", "our foundation."],
-    support: "Rooted in Kenyan law, its courts and its regulators.",
-  },
-  {
-    eyebrow: "02 · Horizon",
-    lines: ["Africa is our", "operating horizon."],
-    support: "Advice built for matters that cross the continent’s borders.",
-  },
-  {
-    eyebrow: "03 · Standard",
-    lines: ["International standards,", "throughout."],
-    support: "Work that meets the expectations of global counterparties.",
-  },
-];
-
-/** Scroll distance per panel, in viewport heights. */
-const SCREENS = PANELS.length + 1;
+/** Scroll distance, in viewport heights: one per panel, plus a beat to release. */
+const SCREENS = 4;
 
 /**
  * Section 4, part one — the image scene.
  *
  * A full-bleed photograph of Nairobi holds still while three panels pass over
- * it. Behind them the photograph settles from 1.2 to 1 and its ink overlay
+ * it. Behind them the photograph settles from 1.2 to 1 and its onyx overlay
  * lifts from 85% to 25%, so the city clears as the visitor reads.
  */
 export function KenyaScene() {
+  const { t } = useLocale();
   const sectionRef = useRef<HTMLElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -78,11 +61,11 @@ export function KenyaScene() {
       ref={sectionRef}
       data-scene
       aria-labelledby="kenya-title"
-      className="relative bg-ink text-ivory in-[.motion-static]:h-auto"
+      className="relative bg-onyx text-bone in-[.motion-static]:h-auto"
       style={{ height: `${SCREENS * 100}svh` }}
     >
       <h2 id="kenya-title" className="sr-only">
-        Kenyan grounding
+        {t.kenya.title}
       </h2>
 
       {/* Sticky, not pinned by script: the browser holds it, Lenis stays smooth. */}
@@ -94,39 +77,39 @@ export function KenyaScene() {
         <img
           ref={imageRef}
           src="/nairobi-wide.svg"
-          alt="The Nairobi skyline at dusk"
+          alt={t.kenya.imageAlt}
           loading="lazy"
           className="absolute inset-0 h-full w-full object-cover"
         />
         <div
           ref={overlayRef}
           aria-hidden="true"
-          className="absolute inset-0 bg-ink opacity-85 in-[.motion-static]:opacity-60"
+          className="absolute inset-0 bg-onyx opacity-85 in-[.motion-static]:opacity-60"
         />
 
         <div className="relative z-10 flex h-full items-center px-[clamp(1.5rem,5vw,7rem)] in-[.motion-static]:py-40">
           {/* The panels share one grid cell, so they pass through the same place. */}
           <div ref={panelsRef} className="grid w-full max-w-[60rem] gap-y-28">
-            {PANELS.map((panel) => (
+            {t.kenya.panels.map((panel, index) => (
               <div
-                key={panel.eyebrow}
+                key={index}
                 data-panel
                 className="col-start-1 row-start-1 in-[.motion-static]:row-start-auto"
               >
                 <p className="line-mask">
-                  <span data-line className="text-[14px] uppercase tracking-[0.22em] text-ochre">
+                  <span data-line className="text-[14px] uppercase tracking-[0.22em] text-mint">
                     {panel.eyebrow}
                   </span>
                 </p>
                 <h3 className="mt-6 font-serif text-[clamp(2.25rem,5.4vw,5rem)] font-normal leading-[1.02] tracking-[-0.02em]">
-                  {panel.lines.map((line) => (
-                    <span key={line} className="line-mask">
+                  {panel.lines.map((line, lineIndex) => (
+                    <span key={lineIndex} className="line-mask">
                       <span data-line>{line}</span>
                     </span>
                   ))}
                 </h3>
                 <p className="line-mask mt-7">
-                  <span data-line className="max-w-[40ch] text-[18px] leading-[1.55] text-ivory/80 sm:text-[20px]">
+                  <span data-line className="max-w-[40ch] text-[18px] leading-[1.55] text-bone/80 sm:text-[20px]">
                     {panel.support}
                   </span>
                 </p>

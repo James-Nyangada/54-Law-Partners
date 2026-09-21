@@ -1,3 +1,5 @@
+import type { Localized } from "@/i18n/types";
+
 // Generated: a simplified outline of Africa on an equirectangular projection
 // (x = (lon + 22) * 10, y = (56 - lat) * 10), smoothed into cubic curves.
 
@@ -11,28 +13,34 @@ export const MADAGASCAR_PATH =
 
 export const NAIROBI = { x: 588.2, y: 572.9 };
 
-export type PlaceKind = "region" | "forum";
+export type PlaceKind = "region" | "francophone" | "forum";
 
 export interface Place {
-  name: string;
+  id: string;
   kind: PlaceKind;
   x: number;
   y: number;
   side: "left" | "right" | "above" | "below";
+  label: Localized;
 }
 
 /**
- * Where the arcs travel, in order: the region first, then the international
- * forums. Placeholders to confirm against where the firm actually works.
+ * Where the arcs travel, in order: the region, francophone jurisdictions, then
+ * the forums the firm appears before. Placeholders to confirm with the firm:
+ * none of these should go live until the firm confirms it works there.
  */
 export const PLACES: Place[] = [
-  { name: "Kampala", kind: "region", x: 546.0, y: 557.0, side: "left" },
-  { name: "Kigali", kind: "region", x: 521.0, y: 579.5, side: "below" },
-  { name: "Dar es Salaam", kind: "region", x: 613.0, y: 628.0, side: "right" },
-  { name: "Addis Ababa", kind: "region", x: 607.0, y: 470.0, side: "left" },
-  { name: "Lagos", kind: "region", x: 254.0, y: 496.0, side: "above" },
-  { name: "Johannesburg", kind: "region", x: 500.0, y: 822.0, side: "below" },
-  { name: "London", kind: "forum", x: 218.7, y: 45.0, side: "left" },
-  { name: "Paris", kind: "forum", x: 243.5, y: 71.4, side: "left" },
-  { name: "Dubai", kind: "forum", x: 773.0, y: 308.0, side: "left" },
+  { id: "kampala", kind: "region", x: 545.8, y: 556.5, side: "left", label: { en: "Kampala", fr: "Kampala" } },
+  { id: "kigali", kind: "region", x: 520.6, y: 579.5, side: "below", label: { en: "Kigali", fr: "Kigali" } },
+  { id: "dar", kind: "region", x: 612.8, y: 627.9, side: "right", label: { en: "Dar es Salaam", fr: "Dar es Salaam" } },
+  { id: "addis", kind: "region", x: 607.5, y: 469.7, side: "left", label: { en: "Addis Ababa", fr: "Addis-Abeba" } },
+  { id: "johannesburg", kind: "region", x: 500.5, y: 822.0, side: "below", label: { en: "Johannesburg", fr: "Johannesburg" } },
+  { id: "kinshasa", kind: "francophone", x: 372.7, y: 603.2, side: "right", label: { en: "Kinshasa", fr: "Kinshasa" } },
+  { id: "douala", kind: "francophone", x: 317.0, y: 519.5, side: "above", label: { en: "Douala", fr: "Douala" } },
+  { id: "abidjan", kind: "francophone", x: 179.7, y: 506.4, side: "below", label: { en: "Abidjan · CCJA", fr: "Abidjan · CCJA" } },
+  { id: "dakar", kind: "francophone", x: 45.5, y: 413.1, side: "right", label: { en: "Dakar", fr: "Dakar" } },
+  { id: "arusha", kind: "forum", x: 586.8, y: 593.7, side: "right", label: { en: "Arusha · EACJ", fr: "Arusha · CJEA" } },
+  { id: "london", kind: "forum", x: 218.7, y: 44.9, side: "left", label: { en: "London · LCIA", fr: "Londres · LCIA" } },
+  { id: "paris", kind: "forum", x: 243.5, y: 71.4, side: "left", label: { en: "Paris · ICC", fr: "Paris · CCI" } },
+  { id: "hague", kind: "forum", x: 263.0, y: 39.2, side: "right", label: { en: "The Hague · PCA", fr: "La Haye · CPA" } },
 ];

@@ -3,16 +3,18 @@
 import { Fragment, useEffect, useRef } from "react";
 import { ensureGsap, ScrollTrigger, prefersReducedMotion } from "@/lib/motion";
 import { AREAS } from "@/components/practice/data";
+import { useLocale } from "@/i18n/useLocale";
 
 /** Pixels per second at rest. Slow enough to read as a breath. */
 const SPEED = 45;
 
 /**
- * The marquee band: the seven practice areas in outlined type, drifting right
+ * The marquee band: the eight practice areas in outlined type, drifting right
  * to left on their own and reversing while the visitor scrolls up. The page's
  * one piece of pure decoration, so it is hidden from assistive technology.
  */
 export function Marquee() {
+  const { locale } = useLocale();
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
 
@@ -37,10 +39,11 @@ export function Marquee() {
       setX(x);
     };
 
-    const onResize = () => {
+    // Re-measure whenever the run changes width: a resize, or a language switch.
+    const observer = new ResizeObserver(() => {
       half = track.scrollWidth / 2;
-    };
-    window.addEventListener("resize", onResize);
+    });
+    observer.observe(track);
 
     // Runs only while on screen; scroll direction steers it.
     const trigger = ScrollTrigger.create({
@@ -59,25 +62,25 @@ export function Marquee() {
     return () => {
       trigger.kill();
       gsap.ticker.remove(tick);
-      window.removeEventListener("resize", onResize);
+      observer.disconnect();
     };
   }, []);
 
   const run = (copy: number) => (
     <div key={copy} className="flex shrink-0 items-center">
       {AREAS.map((area) => (
-        <Fragment key={area.name}>
+        <Fragment key={area.id}>
           <span
-            className="whitespace-nowrap px-10 font-serif text-[clamp(3rem,6vw,5rem)] leading-none tracking-[-0.01em] text-ink"
+            className="whitespace-nowrap px-10 font-serif text-[clamp(3rem,6vw,5rem)] leading-none tracking-[-0.01em] text-onyx"
             style={{
-              WebkitTextStroke: "2px var(--color-ivory)",
-              // Stroke under an ink fill: a clean 1px outline, no contour seams.
+              WebkitTextStroke: "2px var(--color-bone)",
+              // Stroke under an onyx fill: a clean 1px outline, no contour seams.
               paintOrder: "stroke fill",
             }}
           >
-            {area.name}
+            {area.name[locale]}
           </span>
-          <span className="block size-2 shrink-0 rounded-full bg-ochre" />
+          <span className="block size-2 shrink-0 rounded-full bg-emerald" />
         </Fragment>
       ))}
     </div>
@@ -87,7 +90,7 @@ export function Marquee() {
     <section
       ref={sectionRef}
       aria-hidden="true"
-      className="overflow-hidden border-y border-ivory/10 bg-ink py-16 lg:py-24"
+      className="overflow-hidden border-y border-bone/10 bg-onyx py-16 lg:py-24"
     >
       <div ref={trackRef} className="flex w-max will-change-transform">
         {run(0)}

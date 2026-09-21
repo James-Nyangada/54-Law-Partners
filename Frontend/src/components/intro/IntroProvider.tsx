@@ -12,7 +12,7 @@ import {
 import { useReducedMotion } from "@/lib/useReducedMotion";
 
 /**
- * `loading`   — the ivory curtain is up, the counter is running.
+ * `loading`   — the bone curtain is up, the counter is running.
  * `revealing` — the curtain has started to slide off; the hero plays its entrance.
  * `done`      — the opening sequence is over and the page is interactive.
  */

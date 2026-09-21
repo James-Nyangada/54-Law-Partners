@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ensureGsap, ScrollTrigger, EASE, DURATION, prefersReducedMotion } from "@/lib/motion";
-import { AFRICA_PATH, MADAGASCAR_PATH, MAP_VIEWBOX, NAIROBI, PLACES, type Place } from "./geo";
+import { AFRICA_PATH, MADAGASCAR_PATH, MAP_VIEWBOX, NAIROBI, PLACES, type Place, type PlaceKind } from "./geo";
+import { useLocale } from "@/i18n/useLocale";
+import type { Locale } from "@/i18n/types";
 
 /** Where a label sits relative to its dot, and the box that catches hover. */
-function labelLayout(place: Place) {
-  const width = place.name.length * 11 + 28;
+function labelLayout(place: Place, locale: Locale) {
+  const width = place.label[locale].length * 11 + 28;
   switch (place.side) {
     case "left":
       return { x: place.x - 12, y: place.y, anchor: "end" as const, box: { x: place.x - width - 4, y: place.y - 16, width } };
@@ -37,10 +39,18 @@ function arcTo(place: Place) {
 }
 
 const ARCS = PLACES.map(arcTo);
-const COLOR = { region: "var(--color-red-earth)", forum: "var(--color-ink)" } as const;
+/**
+ * Three kinds of destination, told apart by colour and by marker: the region in
+ * emerald, francophone jurisdictions in forest, forums in onyx with a square.
+ */
+const COLOR: Record<PlaceKind, string> = {
+  region: "var(--color-emerald)",
+  francophone: "var(--color-forest)",
+  forum: "var(--color-onyx)",
+};
 
 /**
- * Labels carry a thin ivory halo drawn beneath the letters, so a coastline or
+ * Labels carry a thin bone halo drawn beneath the letters, so a coastline or
  * arc passing behind a name never cuts through it.
  */
 const LABEL_STYLE = {
@@ -48,7 +58,7 @@ const LABEL_STYLE = {
   fontSize: "var(--map-label)",
   letterSpacing: "0.14em",
   textTransform: "uppercase",
-  stroke: "var(--color-ivory)",
+  stroke: "var(--color-bone)",
   strokeWidth: "calc(var(--map-label) * 0.35)",
   strokeLinejoin: "round",
   paintOrder: "stroke fill",
@@ -64,6 +74,7 @@ const LABEL_STYLE = {
  * Hovering a label brightens its arc while the rest recede.
  */
 export function ReachMap() {
+  const { locale, t } = useLocale();
   const [focus, setFocus] = useState<number | null>(null);
 
   const sectionRef = useRef<HTMLElement>(null);
@@ -111,15 +122,19 @@ export function ReachMap() {
       network.fromTo(ring, { scale: 0.4, opacity: 0.7 }, { scale: 3.4, opacity: 0, duration: 1.4 }, 0.1);
       arcs.forEach((arc, index) => {
         const at = 0.6 + index * 0.55;
-        network.to(arc, { strokeDashoffset: 0, duration: 0.4 }, at);
+        network.to(arc, { strokeDashoffset: 0, duration: 0.4, autoRound: false }, at);
         network.to(ends[index], { scale: 1, duration: 0.3 }, at + 0.3);
         network.to(labels[index], { autoAlpha: 1, y: 0, duration: 0.5 }, at + 0.35);
       });
 
       // Signature move 3 — the coastline drawn by scroll, and undrawn by it.
+      // autoRound: false matters. The paths measure 1 unit long, and GSAP
+      // otherwise rounds pixel values to whole numbers, so every line would
+      // snap from hidden to complete halfway through instead of drawing.
       gsap.to(outline, {
         strokeDashoffset: 0,
         ease: "none",
+        autoRound: false,
         scrollTrigger: { trigger: svg, start: "top 80%", end: "center 55%", scrub: true },
       });
 
@@ -148,34 +163,37 @@ export function ReachMap() {
       id="reach"
       ref={sectionRef}
       aria-labelledby="reach-title"
-      className="relative bg-ivory px-[clamp(1.5rem,5vw,7rem)] py-28 text-ink [--map-label:24px] [--map-stroke:3px] sm:[--map-label:22px] sm:[--map-stroke:2px] lg:py-36 lg:[--map-label:15px] lg:[--map-stroke:1.5px]"
+      className="surface-light relative bg-bone px-[clamp(1.5rem,5vw,7rem)] py-28 text-onyx [--map-label:24px] [--map-stroke:3px] sm:[--map-label:22px] sm:[--map-stroke:2px] lg:py-36 lg:[--map-label:15px] lg:[--map-stroke:1.5px]"
     >
       <div className="grid gap-y-14 lg:grid-cols-12 lg:items-center lg:gap-x-6">
         <div ref={introRef} className="lg:col-span-4">
           <h2
             id="reach-title"
-            className="text-[14px] uppercase leading-none tracking-[0.22em] text-red-earth"
+            className="text-[14px] uppercase leading-none tracking-[0.22em] text-forest"
           >
-            Reach
+            {t.reach.title}
           </h2>
           <p className="mt-8 font-serif text-[clamp(1.875rem,3.2vw,3rem)] leading-[1.1] tracking-[-0.015em]">
-            From Nairobi, across the continent and into the forums where international matters
-            are decided.
+            {t.reach.statement}
           </p>
-          <ul className="mt-10 space-y-3 text-[12px] uppercase tracking-[0.2em] text-ink/70">
-            <li className="flex items-center gap-3">
-              <span aria-hidden="true" className="block h-px w-8 bg-red-earth" />
-              Regional matters
-            </li>
-            <li className="flex items-center gap-3">
-              <span aria-hidden="true" className="block h-px w-8 bg-ink" />
-              International forums
-            </li>
+          <ul className="mt-10 space-y-3 text-[12px] uppercase tracking-[0.2em] text-onyx/75">
+            {(["region", "francophone", "forum"] as const).map((kind) => (
+              <li key={kind} className="flex items-center gap-3">
+                <span aria-hidden="true" className="flex w-8 items-center">
+                  <span className="block h-[1.5px] flex-1" style={{ background: COLOR[kind] }} />
+                  <span
+                    className={`block size-2 ${kind === "forum" ? "" : "rounded-full"}`}
+                    style={{ background: COLOR[kind] }}
+                  />
+                </span>
+                {t.reach.legend[kind]}
+              </li>
+            ))}
           </ul>
           <ul className="sr-only">
             {PLACES.map((place) => (
-              <li key={place.name}>
-                {place.name}, {place.kind === "region" ? "regional matters" : "international forum"}
+              <li key={place.id}>
+                {place.label[locale]}, {t.reach.legend[place.kind]}
               </li>
             ))}
           </ul>
@@ -186,7 +204,7 @@ export function ReachMap() {
             ref={svgRef}
             viewBox={`0 0 ${MAP_VIEWBOX.width} ${MAP_VIEWBOX.height}`}
             role="img"
-            aria-label="A map of Africa with lines from Nairobi to the region and to international forums"
+            aria-label={t.reach.mapLabel}
             className="mx-auto block h-auto max-h-[86svh] w-full overflow-visible"
           >
             {/* The coastline. pathLength=1 lets the dash offset run 1 to 0. */}
@@ -198,7 +216,7 @@ export function ReachMap() {
                 pathLength={1}
                 strokeDasharray="1"
                 fill="none"
-                stroke="var(--color-ink)"
+                stroke="var(--color-onyx)"
                 strokeOpacity={0.55}
                 strokeLinejoin="round"
                 style={{ strokeWidth: "var(--map-stroke)" }}
@@ -209,7 +227,7 @@ export function ReachMap() {
               const place = PLACES[index];
               return (
                 <path
-                  key={place.name}
+                  key={place.id}
                   data-arc
                   d={d}
                   pathLength={1}
@@ -229,16 +247,15 @@ export function ReachMap() {
             })}
 
             {PLACES.map((place, index) => {
-              const label = labelLayout(place);
+              const label = labelLayout(place, locale);
               return (
-                <g key={place.name}>
-                  <circle
-                    data-end
-                    cx={place.x}
-                    cy={place.y}
-                    r={5}
-                    fill={COLOR[place.kind]}
-                  />
+                <g key={place.id}>
+                  {/* Forums are institutions, so they are marked with a square. */}
+                  {place.kind === "forum" ? (
+                    <rect data-end x={place.x - 5} y={place.y - 5} width={10} height={10} fill={COLOR.forum} />
+                  ) : (
+                    <circle data-end cx={place.x} cy={place.y} r={5} fill={COLOR[place.kind]} />
+                  )}
                   {/* GSAP moves the outer group; hover dims the inner one. */}
                   <g data-label>
                     <g
@@ -262,10 +279,10 @@ export function ReachMap() {
                         y={label.y}
                         dominantBaseline="middle"
                         textAnchor={label.anchor}
-                        fill="var(--color-ink)"
+                        fill="var(--color-onyx)"
                         style={{ ...LABEL_STYLE }}
                       >
-                        {place.name}
+                        {place.label[locale]}
                       </text>
                     </g>
                   </g>
@@ -280,15 +297,16 @@ export function ReachMap() {
               cy={NAIROBI.y}
               r={10}
               fill="none"
-              stroke="var(--color-red-earth)"
+              stroke="var(--color-emerald)"
               strokeWidth={2}
               opacity={0}
             />
-            <circle data-nairobi cx={NAIROBI.x} cy={NAIROBI.y} r={8} fill="var(--color-red-earth)" />
+            <circle data-nairobi cx={NAIROBI.x} cy={NAIROBI.y} r={8} fill="var(--color-emerald)" />
+            {/* Above and to the right: the one side of Nairobi no arc or label uses. */}
             <text
-              x={NAIROBI.x + 16}
-              y={NAIROBI.y + 26}
-              fill="var(--color-red-earth)"
+              x={NAIROBI.x + 14}
+              y={NAIROBI.y - 16}
+              fill="var(--color-forest)"
               style={{ ...LABEL_STYLE, fontWeight: 600 }}
             >
               Nairobi

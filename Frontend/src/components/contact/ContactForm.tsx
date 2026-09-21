@@ -4,37 +4,41 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ensureGsap, EASE, prefersReducedMotion } from "@/lib/motion";
 import { submitEnquiry, type Enquiry } from "@/lib/enquiry";
 import { FIRM } from "./firm";
+import { useLocale } from "@/i18n/useLocale";
 
 const EASE_CLASS = "ease-[cubic-bezier(0.16,1,0.3,1)]";
 
 type FieldName = keyof Enquiry;
 
+/** Field structure; labels and messages come from the dictionary. */
 const FIELDS: {
   name: FieldName;
-  label: string;
   type?: string;
   autoComplete?: string;
   required: boolean;
   multiline?: boolean;
-  error: string;
 }[] = [
-  { name: "name", label: "Your name", autoComplete: "name", required: true, error: "Please add your name." },
-  { name: "email", label: "Email address", type: "email", autoComplete: "email", required: true, error: "Please add an email address we can reply to." },
-  { name: "organisation", label: "Organisation", autoComplete: "organization", required: false, error: "" },
-  { name: "matter", label: "The matter, in a few lines", required: true, multiline: true, error: "Please tell us a little about the matter." },
+  { name: "name", autoComplete: "name", required: true },
+  { name: "email", type: "email", autoComplete: "email", required: true },
+  { name: "organisation", autoComplete: "organization", required: false },
+  { name: "matter", required: true, multiline: true },
 ];
+
+/** Errors are stored as codes, so they follow a language switch. */
+type FieldError = "required" | "invalid";
 
 type Status = "idle" | "sending" | "sent" | "failed";
 
 /**
  * The enquiry form. No boxes: each field is a label above a 1px rule. On focus
- * the rule thickens to 2px and turns ochre, drawing from the left, while the
+ * the rule thickens to 2px and turns emerald, drawing from the left, while the
  * label shrinks and lifts. On success the form gives way, in place, to a line
  * of confirmation.
  */
 export function ContactForm() {
   const [status, setStatus] = useState<Status>("idle");
-  const [errors, setErrors] = useState<Partial<Record<FieldName, string>>>({});
+  const [errors, setErrors] = useState<Partial<Record<FieldName, FieldError>>>({});
+  const { t } = useLocale();
 
   const wrapRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -103,12 +107,12 @@ export function ContactForm() {
       FIELDS.map((field) => [field.name, String(data.get(field.name) ?? "").trim()]),
     ) as unknown as Enquiry;
 
-    const found: Partial<Record<FieldName, string>> = {};
+    const found: Partial<Record<FieldName, FieldError>> = {};
     for (const field of FIELDS) {
       const value = enquiry[field.name];
-      if (field.required && !value) found[field.name] = field.error;
+      if (field.required && !value) found[field.name] = "required";
       else if (field.type === "email" && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-        found[field.name] = "That email address does not look complete.";
+        found[field.name] = "invalid";
       }
     }
     setErrors(found);
@@ -150,20 +154,21 @@ export function ContactForm() {
         <div ref={confirmRef} tabIndex={-1} role="status" className="outline-none">
           <p className="line-mask">
             <span data-line className="font-serif text-[clamp(1.75rem,2.6vw,2.25rem)] leading-[1.2]">
-              Thank you. Your message is with us.
+              {t.contact.thanks}
             </span>
           </p>
           <p className="line-mask mt-4">
-            <span data-line className="text-[18px] text-ivory-muted">
-              We will be in touch shortly.
+            <span data-line className="text-[18px] text-sage">
+              {t.contact.followUp}
             </span>
           </p>
         </div>
       ) : (
-        <form ref={formRef} noValidate onSubmit={onSubmit} aria-label="Enquiry" className="space-y-8">
+        <form ref={formRef} noValidate onSubmit={onSubmit} aria-label={t.contact.form} className="space-y-8">
           {FIELDS.map((field) => {
             const id = `enquiry-${field.name}`;
-            const error = errors[field.name];
+            const code = errors[field.name];
+            const error = code === "invalid" ? t.contact.emailInvalid : code ? t.contact.fields[field.name].error : null;
             const shared = {
               id,
               name: field.name,
@@ -176,7 +181,7 @@ export function ContactForm() {
                 ? () => setErrors((current) => ({ ...current, [field.name]: undefined }))
                 : undefined,
               className:
-                "peer block w-full resize-none bg-transparent pb-3 pt-2 text-[18px] text-ivory outline-none placeholder:text-transparent focus-visible:outline-none",
+                "peer block w-full resize-none bg-transparent pb-3 pt-2 text-[18px] text-bone outline-none placeholder:text-transparent focus-visible:outline-none",
             } as const;
 
             return (
@@ -190,19 +195,19 @@ export function ContactForm() {
                   {/* The label rests on the rule, and lifts and shrinks on focus or once filled. */}
                   <label
                     htmlFor={id}
-                    className={`pointer-events-none absolute left-0 top-9 origin-left text-[18px] text-ivory-muted transition-[translate,scale,color] duration-500 ${EASE_CLASS} peer-focus:-translate-y-7 peer-focus:scale-[0.72] peer-focus:text-ochre peer-[:not(:placeholder-shown)]:-translate-y-7 peer-[:not(:placeholder-shown)]:scale-[0.72]`}
+                    className={`pointer-events-none absolute left-0 top-9 origin-left text-[18px] text-sage transition-[translate,scale,color] duration-500 ${EASE_CLASS} peer-focus:-translate-y-7 peer-focus:scale-[0.72] peer-focus:text-mint peer-[:not(:placeholder-shown)]:-translate-y-7 peer-[:not(:placeholder-shown)]:scale-[0.72]`}
                   >
-                    {field.label}
-                    {field.required ? null : <span className="text-ivory/40"> (optional)</span>}
+                    {t.contact.fields[field.name].label}
+                    {field.required ? null : <span className="text-sage/70"> {t.contact.optional}</span>}
                   </label>
-                  <span aria-hidden="true" className="absolute inset-x-0 bottom-0 block h-px bg-ivory/25" />
+                  <span aria-hidden="true" className="absolute inset-x-0 bottom-0 block h-px bg-bone/25" />
                   <span
                     aria-hidden="true"
-                    className={`absolute inset-x-0 bottom-0 block h-[2px] origin-left scale-x-0 bg-ochre transition-transform duration-[600ms] ${EASE_CLASS} peer-focus:scale-x-100`}
+                    className={`absolute inset-x-0 bottom-0 block h-[2px] origin-left scale-x-0 bg-emerald transition-transform duration-[600ms] ${EASE_CLASS} peer-focus:scale-x-100`}
                   />
                 </div>
                 {error ? (
-                  <p id={`${id}-error`} className="mt-2 text-[13px] text-ochre">
+                  <p id={`${id}-error`} className="mt-2 text-[13px] text-mint">
                     {error}
                   </p>
                 ) : null}
@@ -210,23 +215,26 @@ export function ContactForm() {
             );
           })}
 
-          <div className="flex flex-wrap items-center gap-6 pt-4">
+          {/* No lawyer-client relationship arises from an enquiry. */}
+          <p className="max-w-[56ch] pt-2 text-[14px] leading-[1.6] text-sage">{t.contact.disclaimer}</p>
+
+          <div className="flex flex-wrap items-center gap-6">
             <button
               ref={buttonRef}
               type="submit"
               disabled={status === "sending"}
-              className="group relative overflow-hidden border border-ivory/40 px-10 py-5 text-[13px] uppercase tracking-[0.16em] text-ivory transition-colors duration-500 hover:text-ink focus-visible:text-ink disabled:opacity-60"
+              className="group relative overflow-hidden border border-bone/40 px-10 py-5 text-[13px] uppercase tracking-[0.16em] text-bone transition-colors duration-500 hover:text-onyx focus-visible:text-onyx disabled:opacity-60"
             >
-              {/* The ochre fill rises from the bottom as the label crosses to ink. */}
+              {/* The mint fill rises from the bottom as the label crosses to onyx. */}
               <span
                 aria-hidden="true"
-                className={`absolute inset-0 block origin-bottom scale-y-0 bg-ochre transition-transform duration-500 ${EASE_CLASS} group-hover:scale-y-100 group-focus-visible:scale-y-100`}
+                className={`absolute inset-0 block origin-bottom scale-y-0 bg-mint transition-transform duration-500 ${EASE_CLASS} group-hover:scale-y-100 group-focus-visible:scale-y-100`}
               />
-              <span className="relative">{status === "sending" ? "Sending" : "Send enquiry"}</span>
+              <span className="relative">{status === "sending" ? t.contact.sending : t.contact.send}</span>
             </button>
             {status === "failed" ? (
-              <p role="alert" className="text-[14px] text-ochre">
-                Your message could not be sent. Please email us at{" "}
+              <p role="alert" className="text-[14px] text-mint">
+                {t.contact.failed}{" "}
                 <a href={`mailto:${FIRM.email}`} className="underline underline-offset-4">
                   {FIRM.email}
                 </a>

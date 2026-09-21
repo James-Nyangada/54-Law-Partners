@@ -7,7 +7,7 @@ import { useIntro } from "./IntroProvider";
 /**
  * Steps 1 and 2 of the opening sequence.
  *
- * An ivory curtain covers the screen while fonts and the hero photograph load.
+ * A bone curtain covers the screen while fonts and the hero photograph load.
  * A counter runs 0 to 100 in the corner, the outlined numeral 54 sits centred,
  * and then the whole curtain eases up and off to reveal the hero behind it.
  */
@@ -112,7 +112,7 @@ export function Preloader() {
     <div
       ref={curtainRef}
       aria-hidden="true"
-      className="preloader pointer-events-none fixed inset-0 z-[100] flex items-center justify-center bg-ivory motion-reduce:hidden"
+      className="preloader pointer-events-none fixed inset-0 z-[100] flex items-center justify-center bg-bone motion-reduce:hidden"
     >
       {/*
         The outlined 54 — a stroke with no fill. Drawn with text-stroke rather
@@ -120,9 +120,9 @@ export function Preloader() {
       */}
       <div
         ref={markRef}
-        className="select-none font-serif text-[clamp(5rem,26vmin,18rem)] leading-none tracking-[-0.02em] text-ivory"
+        className="select-none font-serif text-[clamp(5rem,26vmin,18rem)] leading-none tracking-[-0.02em] text-bone"
         style={{
-          WebkitTextStroke: "2.5px var(--color-ink)",
+          WebkitTextStroke: "2.5px var(--color-onyx)",
           // Stroke first, then fill over it, so the outer half of the stroke
           // survives and the glyph's internal contour seams are covered.
           paintOrder: "stroke fill",
@@ -134,7 +134,7 @@ export function Preloader() {
       {/* The counter, in the corner. */}
       <div
         ref={counterWrapRef}
-        className="absolute bottom-8 right-8 font-sans text-ink sm:bottom-12 sm:right-12"
+        className="absolute bottom-8 right-8 font-sans text-onyx sm:bottom-12 sm:right-12"
       >
         <span
           ref={counterRef}

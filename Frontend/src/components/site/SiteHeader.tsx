@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ensureGsap, ScrollTrigger, EASE, prefersReducedMotion } from "@/lib/motion";
 import { getLenis, scrollToTarget } from "@/lib/lenis";
 import { MobileMenu } from "./MobileMenu";
-import { NAV } from "./nav";
+import { useLocale } from "@/i18n/useLocale";
+import { LanguageToggle } from "@/i18n/LanguageToggle";
 
 const LABEL_SWAP =
   "block transition-transform duration-[450ms] ease-[cubic-bezier(0.16,1,0.3,1)]";
@@ -14,6 +15,7 @@ const LABEL_SWAP =
  * slides down and stays. Below 1024px the links move into a full-screen menu.
  */
 export function SiteHeader() {
+  const { t } = useLocale();
   const headerRef = useRef<HTMLElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -103,25 +105,30 @@ export function SiteHeader() {
     <>
       <header
         ref={headerRef}
-        className="fixed inset-x-0 top-0 z-50 border-b border-ivory/10 bg-ink/90 backdrop-blur-md"
+        className="fixed inset-x-0 top-0 z-50 border-b border-bone/10 bg-onyx/90 backdrop-blur-md"
       >
         <div className="flex h-[var(--header-h)] items-center justify-between px-[clamp(1.5rem,5vw,7rem)]">
           <a href="#hero" className="flex items-baseline gap-3">
-            <span className="font-serif text-2xl leading-none text-ivory">54</span>
-            <span className="text-[11px] uppercase tracking-[0.24em] text-ivory-muted">
+            <span className="font-serif text-2xl leading-none text-bone">54</span>
+            <span className="text-[11px] uppercase tracking-[0.24em] text-sage">
               Law Partners
             </span>
           </a>
 
-          <nav aria-label="Primary" className="hidden lg:block">
-            <ul className="flex items-center gap-9">
-              {NAV.map((item) => (
-                <li key={item.href}>
-                  <NavLink {...item} />
-                </li>
-              ))}
-            </ul>
-          </nav>
+          {/* The EN / FR toggle sits at the far right of the nav. */}
+          <div className="hidden items-center gap-10 lg:flex">
+            <nav aria-label={t.nav.primary}>
+              <ul className="flex items-center gap-9">
+                {t.nav.items.map((item) => (
+                  <li key={item.href}>
+                    <NavLink {...item} />
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            <span aria-hidden="true" className="block h-4 w-px bg-bone/20" />
+            <LanguageToggle />
+          </div>
 
           <button
             ref={menuButtonRef}
@@ -129,17 +136,17 @@ export function SiteHeader() {
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
             onClick={() => setMenuOpen((open) => !open)}
-            className="group flex items-center gap-3 py-2 text-[12px] uppercase tracking-[0.16em] text-ivory lg:hidden"
+            className="group flex items-center gap-3 py-2 text-[12px] uppercase tracking-[0.16em] text-bone lg:hidden"
           >
             {/* Menu slides up and out while Close slides in from below. */}
             {/* Both labels share one grid cell, so the wider one sets the width. */}
             <span className="grid justify-items-end overflow-hidden">
-              <span className={`${LABEL_SWAP} [grid-area:1/1] ${menuOpen ? "-translate-y-full" : ""}`}>Menu</span>
+              <span className={`${LABEL_SWAP} [grid-area:1/1] ${menuOpen ? "-translate-y-full" : ""}`}>{t.nav.menu}</span>
               <span
                 aria-hidden="true"
-                className={`${LABEL_SWAP} [grid-area:1/1] text-ochre ${menuOpen ? "translate-y-0" : "translate-y-full"}`}
+                className={`${LABEL_SWAP} [grid-area:1/1] text-mint ${menuOpen ? "translate-y-0" : "translate-y-full"}`}
               >
-                Close
+                {t.nav.close}
               </span>
             </span>
             {/* Two rules that fold into one as the menu opens. */}
@@ -151,7 +158,7 @@ export function SiteHeader() {
                 className={`absolute left-0 top-1/2 block h-px w-full bg-current transition-transform duration-[450ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${menuOpen ? "translate-y-0 -rotate-45" : "translate-y-[4px]"}`}
               />
             </span>
-            <span className="sr-only">{menuOpen ? "Close menu" : "Open menu"}</span>
+            <span className="sr-only">{menuOpen ? t.nav.closeMenu : t.nav.openMenu}</span>
           </button>
         </div>
       </header>
@@ -169,7 +176,7 @@ function NavLink({ label, href }: { label: string; href: string }) {
   return (
     <a
       href={href}
-      className="group relative block py-1 text-[12px] uppercase tracking-[0.16em] text-ivory"
+      className="group relative block py-1 text-[12px] uppercase tracking-[0.16em] text-bone"
     >
       <span className="relative block overflow-hidden">
         <span className="block transition-transform duration-[450ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-full group-focus-visible:-translate-y-full">
@@ -177,14 +184,14 @@ function NavLink({ label, href }: { label: string; href: string }) {
         </span>
         <span
           aria-hidden="true"
-          className="absolute inset-0 block translate-y-full text-ochre transition-transform duration-[450ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-y-0 group-focus-visible:translate-y-0"
+          className="absolute inset-0 block translate-y-full text-mint transition-transform duration-[450ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-y-0 group-focus-visible:translate-y-0"
         >
           {label}
         </span>
       </span>
       <span
         aria-hidden="true"
-        className="absolute -bottom-0.5 left-0 block h-px w-full origin-left scale-x-0 bg-ochre transition-transform duration-[450ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-x-100 group-focus-visible:scale-x-100"
+        className="absolute -bottom-0.5 left-0 block h-px w-full origin-left scale-x-0 bg-emerald transition-transform duration-[450ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-x-100 group-focus-visible:scale-x-100"
       />
     </a>
   );

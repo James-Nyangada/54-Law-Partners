@@ -15,3 +15,21 @@ export function Arrow({ className }: { className?: string }) {
     </svg>
   );
 }
+
+/** The outward arrow, for links that leave the site. */
+export function ArrowOut({ className }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 12 12"
+      className={className}
+      width="12"
+      height="12"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.2"
+    >
+      <path d="M1 11 11 1M3.5 1H11v7.5" />
+    </svg>
+  );
+}

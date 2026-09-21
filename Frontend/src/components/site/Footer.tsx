@@ -4,10 +4,10 @@ import { useEffect, useRef } from "react";
 import { ensureGsap, prefersReducedMotion } from "@/lib/motion";
 import { getLenis } from "@/lib/lenis";
 import { FIRM, LEGAL_LINKS, SOCIAL_LINKS } from "@/components/contact/firm";
-import { NAV } from "./nav";
+import { useLocale } from "@/i18n/useLocale";
+import { LanguageToggle } from "@/i18n/LanguageToggle";
 
 const EASE_CLASS = "ease-[cubic-bezier(0.16,1,0.3,1)]";
-const FOOTER_NAV = [...NAV, { label: "Our reach", href: "#reach" }];
 
 /*
  * The wordmark geometry, measured from Source Serif 4: at 131.8 units
@@ -26,6 +26,8 @@ const VISIBLE = BASELINE + WORDMARK.descent + WORDMARK.foot;
  * full wordmark rising into view from behind the bottom edge of the page.
  */
 export function Footer() {
+  const { locale, t } = useLocale();
+  const footerNav = [...t.nav.items, { label: t.nav.reach, href: "#reach" }];
   const wordmarkRef = useRef<SVGSVGElement>(null);
   const riseRef = useRef<SVGGElement>(null);
 
@@ -60,15 +62,15 @@ export function Footer() {
   };
 
   return (
-    <footer className="overflow-hidden border-t border-ivory/10 bg-ink text-ivory">
+    <footer className="overflow-hidden border-t border-bone/10 bg-onyx text-bone">
       <div className="grid gap-12 px-[clamp(1.5rem,5vw,7rem)] pb-16 pt-20 lg:grid-cols-12 lg:gap-x-6">
-        <nav aria-label="Footer" className="lg:col-span-4">
+        <nav aria-label={t.nav.footer} className="lg:col-span-4">
           <ul className="grid grid-cols-2 gap-x-8 gap-y-3 text-[13px] uppercase tracking-[0.16em]">
-            {FOOTER_NAV.map((item) => (
+            {footerNav.map((item) => (
               <li key={item.href}>
                 <a
                   href={item.href}
-                  className="text-ivory/80 transition-colors duration-300 hover:text-ochre"
+                  className="text-bone/80 transition-colors duration-300 hover:text-mint"
                 >
                   {item.label}
                 </a>
@@ -78,12 +80,12 @@ export function Footer() {
         </nav>
 
         <div className="space-y-6 lg:col-span-5">
-          <p className="max-w-[52ch] text-[13px] leading-[1.7] text-ivory-muted">{FIRM.practising}</p>
+          <p className="max-w-[52ch] text-[13px] leading-[1.7] text-sage">{FIRM.practising[locale]}</p>
           <ul className="flex flex-wrap gap-x-6 gap-y-2 text-[12px] uppercase tracking-[0.16em]">
             {LEGAL_LINKS.map((link) => (
-              <li key={link.label}>
-                <a href={link.href} className="text-ivory/60 transition-colors duration-300 hover:text-ochre">
-                  {link.label}
+              <li key={link.href + link.label.en}>
+                <a href={link.href} className="text-sage transition-colors duration-300 hover:text-mint">
+                  {link.label[locale]}
                 </a>
               </li>
             ))}
@@ -92,7 +94,7 @@ export function Footer() {
             <ul className="flex flex-wrap gap-x-6 text-[12px] uppercase tracking-[0.16em]">
               {SOCIAL_LINKS.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} rel="noopener noreferrer" target="_blank" className="text-ivory/80 hover:text-ochre">
+                  <a href={link.href} rel="noopener noreferrer" target="_blank" className="text-bone/80 hover:text-mint">
                     {link.label}
                   </a>
                 </li>
@@ -101,14 +103,16 @@ export function Footer() {
           ) : null}
         </div>
 
-        <div className="flex items-start lg:col-span-3 lg:justify-end">
+        {/* The language toggle again, then back to top at the far right. */}
+        <div className="flex flex-wrap items-center gap-x-10 gap-y-6 lg:col-span-3 lg:flex-col lg:items-end lg:justify-start">
+          <LanguageToggle />
           <button
             type="button"
             onClick={toTop}
-            className="group flex items-center gap-4 text-[12px] uppercase tracking-[0.16em] text-ivory/80"
+            className="group flex items-center gap-4 text-[12px] uppercase tracking-[0.16em] text-bone/80"
           >
-            Back to top
-            <span className="relative flex size-12 items-center justify-center overflow-hidden rounded-full border border-ivory/30 transition-colors duration-500 group-hover:border-ochre">
+            {t.footer.backToTop}
+            <span className="relative flex size-12 items-center justify-center overflow-hidden rounded-full border border-bone/30 transition-colors duration-500 group-hover:border-emerald">
               {/* The arrow leaves upward and a duplicate arrives from below. */}
               <svg
                 aria-hidden="true"
@@ -130,7 +134,7 @@ export function Footer() {
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="1.2"
-                className={`absolute translate-y-8 text-ochre transition-transform duration-500 ${EASE_CLASS} group-hover:translate-y-0`}
+                className={`absolute translate-y-8 text-mint transition-transform duration-500 ${EASE_CLASS} group-hover:translate-y-0`}
               >
                 <path d="M5 13.5V1M1 5l4-4 4 4" />
               </svg>
@@ -138,7 +142,7 @@ export function Footer() {
           </button>
         </div>
 
-        <p className="text-[12px] tracking-[0.08em] text-ivory/40 lg:col-span-12">
+        <p className="text-[12px] tracking-[0.08em] text-sage/80 lg:col-span-12">
           {/* The year is baked in at build time and may differ from the
               visitor's clock on New Year's Day, so a mismatch is expected. */}
           &copy; <span suppressHydrationWarning>{new Date().getFullYear()}</span> {FIRM.name}
@@ -159,7 +163,7 @@ export function Footer() {
             y={BASELINE}
             textLength="1000"
             lengthAdjust="spacing"
-            fill="var(--color-ivory)"
+            fill="var(--color-bone)"
             style={{ fontFamily: "var(--font-source-serif), serif", fontSize: WORDMARK.size }}
           >
             {FIRM.name}

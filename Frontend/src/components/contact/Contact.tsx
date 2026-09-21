@@ -4,12 +4,14 @@ import { useEffect, useRef } from "react";
 import { ensureGsap, EASE, DURATION, prefersReducedMotion } from "@/lib/motion";
 import { ContactForm } from "./ContactForm";
 import { FIRM } from "./firm";
+import { useLocale } from "@/i18n/useLocale";
 
 /**
  * Section 8 — the invitation. One line fills the upper half; beneath it the
  * form on the left and the firm's details on the right.
  */
 export function Contact() {
+  const { locale, t } = useLocale();
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -59,10 +61,10 @@ export function Contact() {
   }, []);
 
   const details = [
-    { label: "Office", value: FIRM.address.join(", ") },
-    { label: "Telephone", value: FIRM.phone.display, href: FIRM.phone.href },
-    { label: "Email", value: FIRM.email, href: `mailto:${FIRM.email}` },
-    { label: "Office hours", value: FIRM.hours },
+    { label: t.contact.details.office, value: FIRM.address[locale] },
+    { label: t.contact.details.phone, value: FIRM.phone.display, href: FIRM.phone.href },
+    { label: t.contact.details.email, value: FIRM.email, href: `mailto:${FIRM.email}` },
+    { label: t.contact.details.hours, value: FIRM.hours[locale] },
   ];
 
   return (
@@ -70,7 +72,7 @@ export function Contact() {
       id="contact"
       ref={sectionRef}
       aria-labelledby="contact-title"
-      className="bg-ink px-[clamp(1.5rem,5vw,7rem)] pb-28 text-ivory"
+      className="bg-onyx px-[clamp(1.5rem,5vw,7rem)] pb-28 text-bone"
     >
       <div className="flex min-h-[48svh] items-center pt-[calc(var(--header-h)+3rem)] pb-12">
         <h2
@@ -78,7 +80,7 @@ export function Contact() {
           className="font-serif text-[clamp(2.75rem,5.6vw,5rem)] font-normal leading-[1.02] tracking-[-0.02em]"
         >
           <span className="line-mask">
-            <span data-line-head>Tell us about the matter.</span>
+            <span data-line-head>{t.contact.title}</span>
           </span>
         </h2>
       </div>
@@ -92,11 +94,11 @@ export function Contact() {
           <ul>
             {details.map((detail) => (
               <li key={detail.label} data-detail className="relative py-6">
-                <span data-detail-rule aria-hidden="true" className="absolute inset-x-0 top-0 block h-px bg-ivory/15" />
-                <p className="text-[12px] uppercase tracking-[0.2em] text-ochre">{detail.label}</p>
+                <span data-detail-rule aria-hidden="true" className="absolute inset-x-0 top-0 block h-px bg-bone/15" />
+                <p className="text-[12px] uppercase tracking-[0.2em] text-mint">{detail.label}</p>
                 <p className="mt-2 font-serif text-[clamp(1.25rem,1.6vw,1.375rem)] leading-snug">
                   {detail.href ? (
-                    <a href={detail.href} className="transition-colors duration-300 hover:text-ochre">
+                    <a href={detail.href} className="transition-colors duration-300 hover:text-mint">
                       {detail.value}
                     </a>
                   ) : (
@@ -106,7 +108,7 @@ export function Contact() {
               </li>
             ))}
           </ul>
-          <span data-detail-rule aria-hidden="true" className="block h-px bg-ivory/15" />
+          <span data-detail-rule aria-hidden="true" className="block h-px bg-bone/15" />
         </address>
       </div>
     </section>

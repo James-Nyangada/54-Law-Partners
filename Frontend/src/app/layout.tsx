@@ -6,6 +6,7 @@ import { Preloader } from "@/components/intro/Preloader";
 import { SmoothScroll } from "@/components/SmoothScroll";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { Footer } from "@/components/site/Footer";
+import { LocaleSync } from "@/i18n/LocaleSync";
 
 const sourceSerif = Source_Serif_4({
   variable: "--font-source-serif",
@@ -40,9 +41,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       {/* Browser extensions add attributes to <html> and <body> before React
           loads; suppressHydrationWarning ignores those, and only those. */}
-      <body className="min-h-full bg-ink text-ivory" suppressHydrationWarning>
+      <body className="min-h-full bg-onyx text-bone" suppressHydrationWarning>
         <IntroProvider>
           <SmoothScroll>
+            <LocaleSync />
             <Preloader />
             <SiteHeader />
             <main>{children}</main>

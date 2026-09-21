@@ -6,14 +6,21 @@
 --------------------------------------------------------------------------- */
 
 @theme {
-  /* Palette */
-  --color-ink: #15191c;
-  --color-ivory: #f5f1ea;
-  --color-red-earth: #a8502f;
-  --color-ochre: #d9a36b;
-
-  /* Muted ivory for supporting copy */
-  --color-ivory-muted: #a7a49e;
+  /*
+   * Palette. Measured contrast decides where each colour may appear:
+   *   On onyx:   small accent text is mint (10.3:1); emerald (4.5:1) is for
+   *              text of 20px and up, rules and dots. Muted text is sage.
+   *   On forest: accents are mint (6.6:1); emerald (2.9:1) is not used.
+   *   On bone:   small accent text is forest (11.2:1); emerald (3.9:1) is for
+   *              large text, rules and dots. Mint and sage are never used.
+   *   Fills behind text are mint, with onyx text on them.
+   */
+  --color-onyx: #0b0e0c;
+  --color-forest: #0f3b2a;
+  --color-emerald: #1f8a5f;
+  --color-mint: #6fcfa0;
+  --color-bone: #f3f2ed;
+  --color-sage: #b9c7bf;
 
   /* Typefaces */
   --font-serif: var(--font-source-serif), ui-serif, Georgia, serif;
@@ -54,8 +61,8 @@ html {
 }
 
 body {
-  background-color: var(--color-ink);
-  color: var(--color-ivory);
+  background-color: var(--color-onyx);
+  color: var(--color-bone);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -118,15 +125,21 @@ html[data-intro="revealing"] body {
 /* In the base layer, so a utility such as focus-visible:outline-none on a
    form field can override it. Unlayered CSS would beat every utility. */
 @layer base {
+  /* Mint on dark surfaces; a light surface sets --focus-color to forest. */
   :focus-visible {
-    outline: 1px solid var(--color-ochre);
+    outline: 1px solid var(--focus-color, var(--color-mint));
     outline-offset: 4px;
   }
 
   ::selection {
-    background-color: var(--color-red-earth);
-    color: var(--color-ivory);
+    background-color: var(--color-forest);
+    color: var(--color-bone);
   }
+}
+
+/* Marks a bone section, so focus rings there stay visible. */
+.surface-light {
+  --focus-color: var(--color-forest);
 }
 
 /* Reduced motion --------------------------------------------------------- */

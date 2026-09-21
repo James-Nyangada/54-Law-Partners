@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { ensureGsap, EASE, DURATION, prefersReducedMotion } from "@/lib/motion";
 import { ArrowLink } from "@/components/ui/ArrowLink";
-import { PEOPLE, STAFFING_LINE } from "./data";
+import { PEOPLE } from "./data";
+import { areaName } from "@/components/practice/data";
+import { useLocale } from "@/i18n/useLocale";
 
 const EASE_CLASS = "ease-[cubic-bezier(0.16,1,0.3,1)]";
 const ROOMY_QUERY = "(hover: hover) and (min-width: 1024px)";
@@ -17,6 +19,7 @@ const ROOMY_QUERY = "(hover: hover) and (min-width: 1024px)";
  */
 export function People() {
   const [focus, setFocus] = useState<number | null>(null);
+  const { locale, t } = useLocale();
 
   const sectionRef = useRef<HTMLElement>(null);
   const headRef = useRef<HTMLDivElement>(null);
@@ -156,13 +159,13 @@ export function People() {
       id="people"
       ref={sectionRef}
       aria-labelledby="people-title"
-      className="relative bg-ink px-[clamp(1.5rem,5vw,7rem)] py-28 text-ivory lg:py-40"
+      className="relative bg-onyx px-[clamp(1.5rem,5vw,7rem)] py-28 text-bone lg:py-40"
     >
       <div ref={headRef} className="grid gap-y-8 lg:grid-cols-12 lg:items-end lg:gap-x-6">
         <div className="lg:col-span-5">
           <p className="line-mask">
-            <span data-line className="text-[14px] uppercase tracking-[0.22em] text-ochre">
-              People
+            <span data-line className="text-[14px] uppercase tracking-[0.22em] text-mint">
+              {t.people.eyebrow}
             </span>
           </p>
           <h2
@@ -170,80 +173,101 @@ export function People() {
             className="mt-6 font-serif text-[clamp(2.5rem,5vw,4.5rem)] font-normal leading-[1] tracking-[-0.02em]"
           >
             <span className="line-mask">
-              <span data-line>Our people</span>
+              <span data-line>{t.people.title}</span>
             </span>
           </h2>
         </div>
         <p
           data-rise
-          className="text-[clamp(1.125rem,1.4vw,1.25rem)] leading-[1.55] text-ivory-muted lg:col-span-6 lg:col-start-7"
+          className="text-[clamp(1.125rem,1.4vw,1.25rem)] leading-[1.55] text-sage lg:col-span-6 lg:col-start-7"
         >
-          {STAFFING_LINE}
+          {t.people.staffing}
         </p>
       </div>
 
       <ul ref={gridRef} className={`mt-16 grid grid-cols-1 gap-x-6 gap-y-16 lg:mt-24 ${columns}`}>
-        {PEOPLE.map((person, index) => (
-          <li key={`${person.portrait}-${index}`} data-card>
-            <a
-              href={person.href}
-              data-card-link
-              className="group relative block transition-opacity duration-500"
-              style={{ opacity: focus !== null && focus !== index ? 0.5 : 1 }}
-            >
-              {/* The frame stays fixed; the portrait moves inside it. */}
-              <div className="relative aspect-[4/5] overflow-hidden bg-ink">
-                <div data-portrait className="h-full w-full">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={person.portrait}
-                    alt={`Portrait of ${person.name}`}
-                    loading="lazy"
-                    className={`h-full w-full object-cover transition-[filter,scale] duration-[600ms] ${EASE_CLASS} roomy:grayscale roomy:group-hover:scale-[1.04] roomy:group-hover:grayscale-0`}
+        {PEOPLE.map((person, index) => {
+          const name = person.name[locale];
+          const facts = [
+            { term: t.people.admitted, value: person.admitted[locale] },
+            { term: t.people.languages, value: person.languages[locale] },
+            { term: t.people.forums, value: person.forums[locale] },
+          ];
+          return (
+            <li key={person.id} data-card>
+              <a
+                href={person.href}
+                data-card-link
+                className="group relative block transition-opacity duration-500"
+                style={{ opacity: focus !== null && focus !== index ? 0.5 : 1 }}
+              >
+                {/* The frame stays fixed; the portrait moves inside it. */}
+                <div className="relative aspect-[4/5] overflow-hidden bg-onyx">
+                  <div data-portrait className="h-full w-full">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={person.portrait}
+                      alt={`${t.people.portrait} ${name}`}
+                      loading="lazy"
+                      className={`h-full w-full object-cover transition-[filter,scale] duration-[600ms] ${EASE_CLASS} roomy:grayscale roomy:group-hover:scale-[1.04] roomy:group-hover:grayscale-0`}
+                    />
+                  </div>
+                </div>
+
+                <div className="relative mt-8 pb-5">
+                  <h3 className={`font-serif ${nameSize} font-normal leading-[1.1] tracking-[-0.01em]`}>
+                    {name}
+                  </h3>
+                  {/* The rule draws across the full width of the card on hover. */}
+                  <span
+                    aria-hidden="true"
+                    className={`absolute inset-x-0 bottom-0 block h-px origin-left scale-x-0 bg-emerald transition-transform duration-[600ms] ${EASE_CLASS} group-hover:scale-x-100 group-focus-visible:scale-x-100`}
                   />
                 </div>
-              </div>
+                <p className="mt-5 text-[14px] uppercase tracking-[0.2em] text-mint">{person.role[locale]}</p>
+                <ul className="mt-6 flex flex-wrap gap-2">
+                  {person.practices.map((practice) => (
+                    <li
+                      key={practice}
+                      className="border border-bone/20 px-3 py-1.5 text-[11px] uppercase tracking-[0.16em] text-sage"
+                    >
+                      {areaName(practice)[locale]}
+                    </li>
+                  ))}
+                </ul>
 
-              <div className="relative mt-8 pb-5">
-                <h3 className={`font-serif ${nameSize} font-normal leading-[1.1] tracking-[-0.01em]`}>
-                  {person.name}
-                </h3>
-                {/* The rule draws across the full width of the card on hover. */}
+                {/* Admission, languages and forums, each on its own ruled line. */}
+                <dl className="mt-8 border-t border-bone/15">
+                  {facts.map((fact) => (
+                    <div
+                      key={fact.term}
+                      className="grid grid-cols-[7.5rem_1fr] gap-x-4 border-b border-bone/15 py-3 sm:grid-cols-[9rem_1fr]"
+                    >
+                      <dt className="pt-0.5 text-[11px] uppercase tracking-[0.18em] text-mint">{fact.term}</dt>
+                      <dd className="text-[15px] leading-[1.5] text-bone/85">{fact.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+
                 <span
+                  data-cursor-label
                   aria-hidden="true"
-                  className={`absolute inset-x-0 bottom-0 block h-px origin-left scale-x-0 bg-ochre transition-transform duration-[600ms] ${EASE_CLASS} group-hover:scale-x-100 group-focus-visible:scale-x-100`}
-                />
-              </div>
-              <p className="mt-5 text-[14px] uppercase tracking-[0.2em] text-ochre">{person.role}</p>
-              <ul className="mt-6 flex flex-wrap gap-2">
-                {person.tags.map((tag) => (
-                  <li
-                    key={tag}
-                    className="border border-ivory/20 px-3 py-1.5 text-[11px] uppercase tracking-[0.16em] text-ivory/70"
-                  >
-                    {tag}
-                  </li>
-                ))}
-              </ul>
-
-              <span
-                data-cursor-label
-                aria-hidden="true"
-                className="pointer-events-none invisible absolute left-0 top-0 z-10 flex size-28 items-center justify-center rounded-full bg-ochre text-center text-[11px] uppercase leading-tight tracking-[0.16em] text-ink"
-              >
-                View
-                <br />
-                profile
-              </span>
-              <span className="sr-only">View profile</span>
-            </a>
-          </li>
-        ))}
+                  className="pointer-events-none invisible absolute left-0 top-0 z-10 flex size-28 items-center justify-center rounded-full bg-mint text-center text-[11px] uppercase leading-tight tracking-[0.16em] text-onyx"
+                >
+                  {t.people.viewProfile[0]}
+                  <br />
+                  {t.people.viewProfile[1]}
+                </span>
+                <span className="sr-only">{t.people.viewProfile.join(" ")}</span>
+              </a>
+            </li>
+          );
+        })}
       </ul>
 
       <div className="mt-16 lg:mt-20">
-        <ArrowLink href="#people" className="text-ivory">
-          The full team
+        <ArrowLink href="#people" className="text-bone">
+          {t.people.fullTeam}
         </ArrowLink>
       </div>
     </section>

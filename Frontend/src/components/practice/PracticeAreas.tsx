@@ -10,6 +10,7 @@ import {
 } from "@/lib/motion";
 import { scrollToTarget } from "@/lib/lenis";
 import { AREAS, PILLARS } from "./data";
+import { useLocale } from "@/i18n/useLocale";
 
 /** Areas grouped under their pillar, each carrying its 01 to 07 number. */
 const GROUPS = PILLARS.map((pillar) => ({
@@ -27,12 +28,13 @@ const EASE_CLASS = "ease-[cubic-bezier(0.16,1,0.3,1)]";
  * Section 3 — practice areas.
  *
  * With a mouse on a wide screen: a pinned column of pillar names beside a list
- * of full-width rows, each of which fills with ochre on hover while a
+ * of full-width rows, each of which fills with mint on hover while a
  * photograph follows the cursor. On touch screens and narrow windows: a sticky
  * label bar, and each row carries its thumbnail at the right edge.
  */
 export function PracticeAreas() {
   const [active, setActive] = useState(0);
+  const { locale, t } = useLocale();
 
   const sectionRef = useRef<HTMLElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
@@ -247,12 +249,12 @@ export function PracticeAreas() {
       id="practice-areas"
       ref={sectionRef}
       aria-labelledby="practice-areas-title"
-      className="relative bg-ink pb-32 text-ivory roomy:py-40"
+      className="relative bg-onyx pb-32 text-bone roomy:py-40"
     >
       {/* Touch and narrow screens: the pillars become a sticky label bar. */}
       <div
         ref={barRef}
-        className="sticky top-[var(--header-h)] z-20 border-b border-ivory/10 bg-ink/95 backdrop-blur-md roomy:hidden"
+        className="sticky top-[var(--header-h)] z-20 border-b border-bone/10 bg-onyx/95 backdrop-blur-md roomy:hidden"
       >
         <div className="flex gap-7 overflow-x-auto px-[clamp(1.5rem,5vw,7rem)] py-4 [scrollbar-width:none]">
           {PILLARS.map((pillar, index) => (
@@ -262,10 +264,10 @@ export function PracticeAreas() {
               onClick={() => goToGroup(index)}
               aria-current={active === index ? "true" : undefined}
               className={`shrink-0 text-[11px] uppercase tracking-[0.18em] transition-[color,opacity] duration-500 ${EASE_CLASS} ${
-                active === index ? "text-ochre opacity-100" : "text-ivory opacity-30"
+                active === index ? "text-mint opacity-100" : "text-bone opacity-30"
               }`}
             >
-              {pillar.short}
+              {pillar.short[locale]}
             </button>
           ))}
         </div>
@@ -277,9 +279,9 @@ export function PracticeAreas() {
           <div className="sticky top-[calc(var(--header-h)+4rem)]">
             <h2
               id="practice-areas-title"
-              className="text-[14px] uppercase leading-none tracking-[0.22em] text-ochre"
+              className="text-[14px] uppercase leading-none tracking-[0.22em] text-mint"
             >
-              Practice areas
+              {t.practice.title}
             </h2>
             <ul ref={pillarsRef} className="mt-10 space-y-5">
               {PILLARS.map((pillar, index) => (
@@ -293,10 +295,10 @@ export function PracticeAreas() {
                     <span
                       data-reveal
                       className={`font-serif text-[clamp(1.375rem,1.8vw,1.75rem)] leading-[1.15] transition-[color,opacity] duration-500 ${EASE_CLASS} ${
-                        active === index ? "text-ochre opacity-100" : "text-ivory opacity-30 hover:opacity-60"
+                        active === index ? "text-emerald opacity-100" : "text-bone opacity-30 hover:opacity-60"
                       }`}
                     >
-                      {pillar.name}
+                      {pillar.name[locale]}
                     </span>
                   </button>
                 </li>
@@ -306,8 +308,8 @@ export function PracticeAreas() {
         </aside>
 
         <div ref={listRef} className="pt-16 roomy:col-span-8 roomy:col-start-5 roomy:pt-0">
-          <p className="mb-10 text-[14px] uppercase leading-none tracking-[0.22em] text-ochre roomy:hidden">
-            Practice areas
+          <p className="mb-10 text-[14px] uppercase leading-none tracking-[0.22em] text-mint roomy:hidden">
+            {t.practice.title}
           </p>
 
           {GROUPS.map(({ pillar, areas }, groupIndex) => (
@@ -318,39 +320,52 @@ export function PracticeAreas() {
               }}
               className={groupIndex > 0 ? "mt-16 roomy:mt-24" : undefined}
             >
-              <h3 className="sr-only">{pillar.name}</h3>
+              <h3 className="sr-only">{pillar.name[locale]}</h3>
               <ul>
                 {areas.map((area) => (
-                  <li key={area.name} data-row data-index={area.index} className="group relative">
+                  <li key={area.id} data-row data-index={area.index} className="group relative">
                     <span
                       data-rule
                       aria-hidden="true"
-                      className="absolute inset-x-0 top-0 block h-px bg-ivory/15"
+                      className="absolute inset-x-0 top-0 block h-px bg-bone/15"
                     />
-                    {/* The ochre fill grows from the left edge in 0.5s. */}
+                    {/* The mint fill grows from the left edge in 0.5s. */}
                     <span
                       aria-hidden="true"
-                      className={`absolute inset-0 block origin-left scale-x-0 bg-ochre transition-transform duration-500 ${EASE_CLASS} roomy:group-hover:scale-x-100`}
+                      className={`absolute inset-0 block origin-left scale-x-0 bg-mint transition-transform duration-500 ${EASE_CLASS} roomy:group-hover:scale-x-100`}
                     />
                     <div
-                      className={`relative flex items-center gap-5 py-6 transition-[translate,color] duration-500 ${EASE_CLASS} roomy:gap-8 roomy:py-8 roomy:group-hover:translate-x-6 roomy:group-hover:text-ink`}
+                      className={`relative flex items-center gap-5 py-6 transition-[translate,color] duration-500 ${EASE_CLASS} roomy:gap-8 roomy:py-8 roomy:group-hover:translate-x-6 roomy:group-hover:text-onyx`}
                     >
                       <span className="line-mask w-7 shrink-0 roomy:w-10">
                         <span
                           data-reveal
-                          className={`text-[13px] tabular-nums tracking-[0.12em] text-ivory/50 transition-colors duration-500 ${EASE_CLASS} roomy:group-hover:text-ink`}
+                          className={`text-[13px] tabular-nums tracking-[0.12em] text-sage transition-colors duration-500 ${EASE_CLASS} roomy:group-hover:text-onyx`}
                         >
                           {String(area.index + 1).padStart(2, "0")}
                         </span>
                       </span>
-                      <span className="line-mask min-w-0 flex-1">
-                        <span
-                          data-reveal
-                          className="font-serif text-[clamp(1.5rem,4.6vw,2.5rem)] leading-[1.1] tracking-[-0.01em]"
-                        >
-                          {area.name}
+                      <div className="min-w-0 flex-1">
+                        <span className="line-mask">
+                          <span
+                            data-reveal
+                            className="font-serif text-[clamp(1.5rem,4.6vw,2.5rem)] leading-[1.1] tracking-[-0.01em]"
+                          >
+                            {area.name[locale]}
+                          </span>
                         </span>
-                      </span>
+                        {/* A qualifying line, where an area needs one. */}
+                        {area.note ? (
+                          <span className="line-mask mt-2">
+                            <span
+                              data-reveal
+                              className={`max-w-[58ch] text-[15px] leading-[1.5] text-sage transition-colors duration-500 ${EASE_CLASS} roomy:group-hover:text-onyx`}
+                            >
+                              {area.note[locale]}
+                            </span>
+                          </span>
+                        ) : null}
+                      </div>
                       {/* On touch the thumbnail lives permanently at the right edge. */}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
@@ -368,7 +383,7 @@ export function PracticeAreas() {
                 data-row
                 data-rule
                 aria-hidden="true"
-                className="block h-px bg-ivory/15"
+                className="block h-px bg-bone/15"
               />
             </div>
           ))}
@@ -386,7 +401,7 @@ export function PracticeAreas() {
           {AREAS.map((area) => (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              key={area.name}
+              key={area.id}
               src={area.image}
               alt=""
               className="block object-cover"

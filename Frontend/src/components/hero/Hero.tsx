@@ -11,6 +11,7 @@ import {
 } from "@/lib/motion";
 import { useIntro } from "../intro/IntroProvider";
 import { Magnetic } from "./Magnetic";
+import { useLocale } from "@/i18n/useLocale";
 
 /**
  * Swap this for a photograph once art direction lands: a Nairobi skyline at
@@ -18,14 +19,10 @@ import { Magnetic } from "./Magnetic";
  */
 const HERO_IMAGE = "/hero-nairobi-dusk.svg";
 
-const HEADLINE = [
-  "Commercially grounded",
-  "counsel for Africa’s",
-  "most complex matters.",
-];
-
 export function Hero() {
   const { phase, reportHeroImageReady } = useIntro();
+  const { t } = useLocale();
+  const glowRef = useRef<HTMLDivElement>(null);
 
   const rootRef = useRef<HTMLElement>(null);
   const eyebrowRef = useRef<HTMLParagraphElement>(null);
@@ -75,7 +72,7 @@ export function Hero() {
     // whole opening sequence lands at roughly 3.2 seconds.
     const tl = gsap.timeline({ delay: 0.5, defaults: { ease: EASE } });
 
-    // 3 — the eyebrow fades in as a 1px ochre rule draws itself left to right.
+    // 3 — the eyebrow fades in as a 1px emerald rule draws itself left to right.
     tl.to(eyebrowRef.current, { autoAlpha: 1, y: 0, duration: DURATION.entrance }, 0);
     tl.to(ruleRef.current, { scaleX: 1, duration: 1 }, 0.05);
 
@@ -111,6 +108,26 @@ export function Hero() {
       timelinesRef.current.push(loop);
     }
   }, [phase]);
+
+  // The glow eases toward the cursor, up to 48px each way, over 1.4s.
+  useEffect(() => {
+    const glow = glowRef.current;
+    if (!glow || prefersReducedMotion()) return;
+    if (!window.matchMedia("(pointer: fine)").matches) return;
+
+    const gsap = ensureGsap();
+    const xTo = gsap.quickTo(glow, "x", { duration: 1.4, ease: EASE });
+    const yTo = gsap.quickTo(glow, "y", { duration: 1.4, ease: EASE });
+    const onMove = (event: PointerEvent) => {
+      xTo((event.clientX / window.innerWidth - 0.5) * 96);
+      yTo((event.clientY / window.innerHeight - 0.5) * 96);
+    };
+    window.addEventListener("pointermove", onMove);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      gsap.killTweensOf(glow);
+    };
+  }, []);
 
   // On scroll — parallax separation and the dim toward black.
   useEffect(() => {
@@ -181,8 +198,22 @@ export function Hero() {
     <section
       id="hero"
       ref={rootRef}
-      className="relative h-svh min-h-[620px] w-full overflow-hidden bg-ink [--hero-pad:clamp(1.5rem,5vw,7rem)]"
+      className="relative h-svh min-h-[620px] w-full overflow-hidden bg-onyx [--hero-pad:clamp(1.5rem,5vw,7rem)]"
     >
+      {/*
+        A forest radial behind the headline, so the black is never flat. It
+        drifts a little after the cursor, slowly, like light across a room.
+      */}
+      <div
+        ref={glowRef}
+        aria-hidden="true"
+        className="pointer-events-none absolute left-[-18vmin] top-1/2 h-[150vmin] w-[150vmin] -translate-y-1/2 rounded-full"
+        style={{
+          background:
+            "radial-gradient(closest-side, rgb(15 59 42 / 0.95), rgb(15 59 42 / 0.5) 45%, rgb(15 59 42 / 0) 100%)",
+        }}
+      />
+
       {/*
         The image occupies columns 9 to 12 and runs from the top of the viewport
         to the bottom edge with no margin. The frame is 15% taller than the hero
@@ -206,7 +237,7 @@ export function Hero() {
           className="h-full w-full origin-center object-cover"
         />
         {/* On narrow screens the copy sits over the photograph, so darken more. */}
-        <div className="absolute inset-0 bg-ink/75 lg:bg-ink/20" />
+        <div className="absolute inset-0 bg-onyx/75 lg:bg-onyx/20" />
       </div>
 
       {/* Twelve column grid: the headline occupies columns 1 to 7. */}
@@ -215,24 +246,25 @@ export function Hero() {
           <p
             ref={eyebrowRef}
             data-anim
-            className="text-[14px] uppercase leading-none tracking-[0.22em] text-ochre"
+            className="text-[14px] uppercase leading-none tracking-[0.22em] text-mint"
           >
-            Nairobi &middot; Cross-border counsel
+            {t.hero.eyebrow}
           </p>
 
           <span
             ref={ruleRef}
             data-anim
-            className="mt-5 block h-px w-full max-w-[26rem] bg-ochre"
+            className="mt-5 block h-px w-full max-w-[26rem] bg-emerald"
           />
 
           <h1
             ref={headlineRef}
             data-anim
-            className="mt-9 font-serif text-[clamp(1.75rem,4.8vw,7.5rem)] font-normal leading-[0.98] tracking-[-0.02em] text-ivory"
+            className="mt-9 font-serif text-[clamp(1.75rem,4.8vw,7.5rem)] font-normal leading-[0.98] tracking-[-0.02em] text-bone"
           >
-            {HEADLINE.map((line) => (
-              <span key={line} className="line-mask">
+            {/* Keyed by position, so switching language keeps the same elements. */}
+            {t.hero.headline.map((line, index) => (
+              <span key={index} className="line-mask">
                 <span className="whitespace-nowrap">{line}</span>
               </span>
             ))}
@@ -241,28 +273,28 @@ export function Hero() {
           <p
             ref={supportRef}
             data-anim
-            className="mt-9 max-w-full text-[20px] leading-[1.55] text-ivory-muted"
+            className="mt-9 max-w-full text-[20px] leading-[1.55] text-sage"
           >
-            Advising on transactions, disputes and regulation across East Africa.
+            {t.hero.support}
           </p>
 
           <div ref={actionsRef} data-anim className="mt-11 flex flex-wrap items-center gap-x-10 gap-y-5">
             <Magnetic>
               <a
                 href="#practice-areas"
-                className="group inline-block bg-ochre px-9 py-4 text-[13px] uppercase tracking-[0.16em] text-ink transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-ivory"
+                className="group inline-block bg-mint px-9 py-4 text-[13px] uppercase tracking-[0.16em] text-onyx transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-bone"
               >
-                Practice areas
+                {t.hero.practice}
               </a>
             </Magnetic>
 
             <Magnetic strength={0.2}>
               <a
                 href="#contact"
-                className="group relative inline-block py-4 text-[13px] uppercase tracking-[0.16em] text-ivory"
+                className="group relative inline-block py-4 text-[13px] uppercase tracking-[0.16em] text-bone"
               >
-                Speak to us
-                <span className="absolute bottom-3 left-0 h-px w-full origin-left scale-x-0 bg-ochre transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-x-100" />
+                {t.hero.speak}
+                <span className="absolute bottom-3 left-0 h-px w-full origin-left scale-x-0 bg-emerald transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-x-100" />
               </a>
             </Magnetic>
           </div>
@@ -276,10 +308,10 @@ export function Hero() {
         aria-hidden="true"
         className="absolute bottom-0 left-[var(--hero-pad)] z-10 hidden lg:block"
       >
-        <div className="relative h-24 w-px bg-ivory/20">
+        <div className="relative h-24 w-px bg-bone/20">
           <span
             ref={dotRef}
-            className="absolute left-1/2 top-0 block h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-ochre"
+            className="absolute left-1/2 top-0 block h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-mint"
           />
         </div>
       </div>
