@@ -1,54 +1,86 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { SplitText } from "gsap/SplitText";
+import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
+import { CustomEase } from "gsap/CustomEase";
+import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 
 /**
- * The motion system, in one place.
- *
- * Every animation on the site draws from these constants so the page reads as
- * one composed piece rather than a pile of separate effects.
+ * The motion system, in one place. Every animation draws on these constants so
+ * the site reads as one composed piece.
  */
 
-/** The single easing curve used everywhere. cubic-bezier(0.16, 1, 0.3, 1). */
-export const EASE = "power4.out";
-
-/** The same curve, for CSS transitions. */
+/** The UI kit's single curve: cubic-bezier(0.16, 1, 0.3, 1). */
+export const EASE = "settle";
+/** A symmetric curve for things that cover and uncover (the curtain). */
+export const EASE_INOUT = "cover";
 export const EASE_CSS = "cubic-bezier(0.16, 1, 0.3, 1)";
 
 export const DURATION = {
-  /** Standard entrance. */
+  /** Interface response: hovers, fields, small state changes. */
+  ui: 0.3,
   entrance: 0.9,
-  /** Large image reveal. */
-  reveal: 1.4,
-  /** Cursor response. */
-  cursor: 0.3,
+  reveal: 1.3,
 } as const;
 
-/** Grouped items stagger 100ms apart; headline lines 120ms. */
-export const STAGGER = {
-  group: 0.1,
-  headline: 0.12,
-} as const;
+export const STAGGER = { group: 0.08, lines: 0.1 } as const;
 
 let registered = false;
 
-/**
- * Registers GSAP plugins exactly once, on the client only. Safe to call from
- * any effect; a no-op on the server.
- */
+/** Registers plugins and custom eases once, on the client only. */
 export function ensureGsap(): typeof gsap {
   if (!registered && typeof window !== "undefined") {
-    gsap.registerPlugin(ScrollTrigger);
-    // Keep the ticker steady when the tab has been backgrounded.
+    gsap.registerPlugin(ScrollTrigger, SplitText, DrawSVGPlugin, CustomEase, MotionPathPlugin);
+    CustomEase.create(EASE, "0.16, 1, 0.3, 1");
+    CustomEase.create(EASE_INOUT, "0.76, 0, 0.24, 1");
+    gsap.defaults({ ease: EASE });
     gsap.ticker.lagSmoothing(0);
     registered = true;
   }
   return gsap;
 }
 
-/** True when the visitor has asked for reduced motion. */
 export function prefersReducedMotion(): boolean {
   if (typeof window === "undefined") return false;
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-export { gsap, ScrollTrigger };
+export function finePointer(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+}
+
+/* ---------------------------------------------------------------------------
+   The "page is visible" signal.
+
+   A curtain covers the screen on first load and between pages. Entrances must
+   not play underneath it, so anything that animates in waits for this signal.
+--------------------------------------------------------------------------- */
+
+let covered = true;
+const waiting = new Set<() => void>();
+
+/** Called by the curtain as it starts to lift off a page. */
+export function markRevealed() {
+  covered = false;
+  const callbacks = [...waiting];
+  waiting.clear();
+  callbacks.forEach((callback) => callback());
+}
+
+/** Called by the curtain as it closes over the page being left. */
+export function markCovered() {
+  covered = true;
+}
+
+/** Runs `callback` once the page is visible. Returns a cancel function. */
+export function whenRevealed(callback: () => void): () => void {
+  if (!covered) {
+    callback();
+    return () => {};
+  }
+  waiting.add(callback);
+  return () => waiting.delete(callback);
+}
+
+export { gsap, ScrollTrigger, SplitText };

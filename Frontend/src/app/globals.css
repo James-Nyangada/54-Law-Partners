@@ -1,42 +1,42 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------------------
-   54 Law Partners — design tokens
-   Palette and motion constants from the landing page design spec.
+   54 Law Partners — design tokens (UI kit, build reference v1.0)
 --------------------------------------------------------------------------- */
 
 @theme {
   /*
-   * Palette. Measured contrast decides where each colour may appear:
-   *   On onyx:   small accent text is mint (10.3:1); emerald (4.5:1) is for
-   *              text of 20px and up, rules and dots. Muted text is sage.
-   *   On forest: accents are mint (6.6:1); emerald (2.9:1) is not used.
-   *   On bone:   small accent text is forest (11.2:1); emerald (3.9:1) is for
-   *              large text, rules and dots. Mint and sage are never used.
-   *   Fills behind text are mint, with onyx text on them.
+   * Contrast rules, measured, not optional:
+   *   Emerald on onyx is 4.49:1 — fills, rules and display type 24px and up only.
+   *   Mint carries every accent label, caption and small link on dark.
+   *   On bone, forest does the accent job; emerald and mint are not used for text.
+   *   Text on a mint fill is onyx (10.3:1). Bone on emerald (3.9:1) is never used.
    */
   --color-onyx: #0b0e0c;
   --color-forest: #0f3b2a;
+  --color-forest-deep: #0c2b1f;
   --color-emerald: #1f8a5f;
   --color-mint: #6fcfa0;
+  --color-mint-light: #9fdfbf;
+  --color-mint-dark: #4fb184;
   --color-bone: #f3f2ed;
+  --color-bone-deep: #eae9e3;
   --color-sage: #b9c7bf;
+  --color-line-dark: #1e2a24;
+  --color-line-raised: #2e4036;
+  --color-line-light: #d5dcd7;
+  --color-muted: #5c6e64;
+  --color-error: #c2554a;
 
-  /* Typefaces */
   --font-serif: var(--font-source-serif), ui-serif, Georgia, serif;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
-  /* The single easing curve used across the whole page */
   --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* Durations from the motion system */
-  --duration-entrance: 900ms;
-  --duration-reveal: 1400ms;
-  --duration-cursor: 300ms;
+  --radius-xs: 2px;
 }
 
-/* Touch screens, and anything narrower than the two-column layout, get the
-   compact treatment: no hover effects, permanent thumbnails, label bars. */
+/* Touch screens and narrow windows: no hover effects, permanent thumbnails. */
 @custom-variant compact {
   @media (hover: none), (max-width: 1023.98px) {
     @slot;
@@ -51,12 +51,15 @@
 
 :root {
   color-scheme: dark;
-  /* Height of the slim header, for anything that sticks beneath it. */
-  --header-h: 4.1875rem;
+  --header-h: 4.5rem;
+  /* Section rhythm from the UI kit. */
+  --pad-y: clamp(64px, 9vw, 128px);
+  --pad-x: clamp(20px, 3.5vw, 48px);
+  --content-max: 1344px;
+  --reading-max: 1040px;
 }
 
 html {
-  /* Lenis drives the scroll; never let the browser fight it. */
   scroll-behavior: auto;
 }
 
@@ -64,6 +67,8 @@ body {
   background-color: var(--color-onyx);
   color: var(--color-bone);
   font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -74,72 +79,197 @@ html.lenis,
 html.lenis body {
   height: auto;
 }
-
 .lenis.lenis-smooth {
   scroll-behavior: auto !important;
 }
-
 .lenis.lenis-smooth [data-lenis-prevent] {
   overscroll-behavior: contain;
 }
-
 .lenis.lenis-stopped {
   overflow: hidden;
 }
 
-/* Scroll is locked until the opening sequence releases it. */
-html[data-intro="loading"] body,
-html[data-intro="revealing"] body {
-  overflow: hidden;
+/* Layout ----------------------------------------------------------------- */
+
+@utility shell {
+  width: 100%;
+  max-width: calc(var(--content-max) + var(--pad-x) * 2);
+  margin-inline: auto;
+  padding-inline: var(--pad-x);
 }
 
-/* Signature move 1 — mask reveal ----------------------------------------- */
+@utility section-y {
+  padding-block: var(--pad-y);
+}
 
+/* Type scale ------------------------------------------------------------- */
+
+@utility type-hero {
+  font-family: var(--font-serif);
+  font-size: clamp(42px, 5.6vw, 82px);
+  line-height: 1.04;
+  font-weight: 400;
+  letter-spacing: -0.018em;
+}
+
+@utility type-display {
+  font-family: var(--font-serif);
+  font-size: clamp(36px, 4.6vw, 64px);
+  line-height: 1.06;
+  font-weight: 400;
+  letter-spacing: -0.016em;
+}
+
+@utility type-section {
+  font-family: var(--font-serif);
+  font-size: clamp(28px, 3vw, 42px);
+  line-height: 1.14;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+@utility type-row {
+  font-family: var(--font-serif);
+  font-size: clamp(21px, 2vw, 28px);
+  line-height: 1.25;
+  font-weight: 400;
+}
+
+@utility type-card {
+  font-family: var(--font-serif);
+  font-size: clamp(19px, 1.6vw, 22px);
+  line-height: 1.3;
+  font-weight: 500;
+}
+
+@utility type-lead {
+  font-size: clamp(17px, 1.35vw, 19px);
+  line-height: 1.65;
+}
+
+@utility type-meta {
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+
+@utility eyebrow {
+  font-size: 11.5px;
+  line-height: 1.4;
+  letter-spacing: 0.18em;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Surfaces: eyebrows are mint on dark and forest on bone. */
+.surface-dark {
+  --strong: var(--color-bone);
+  --accent: var(--color-mint);
+  --muted-text: var(--color-sage);
+  --rule: var(--color-line-dark);
+  --rule-raised: var(--color-line-raised);
+}
+.surface-light {
+  --strong: var(--color-onyx);
+  --accent: var(--color-forest);
+  --muted-text: var(--color-muted);
+  --rule: var(--color-line-light);
+  --rule-raised: var(--color-line-light);
+  --focus-color: var(--color-forest);
+  color-scheme: light;
+}
+
+/* Masked line reveals (SplitText output and hand-built lines). */
 .line-mask {
   display: block;
   overflow: hidden;
-  /* Room for descenders so the mask never clips a "g" or "y". */
   padding-bottom: 0.12em;
   margin-bottom: -0.12em;
 }
-
 .line-mask > span {
   display: block;
-  will-change: transform;
 }
 
-/* Elements that animate in start hidden so there is no flash before GSAP
-   takes over. The `is-static` class is applied when motion is reduced. */
-
-[data-anim] {
+/* Content that animates in starts hidden, so it never flashes before GSAP. */
+html.js [data-reveal],
+html.js [data-hero],
+html.js [data-header-item] {
   visibility: hidden;
 }
+html.motion-static [data-reveal],
+html.motion-static [data-hero],
+html.motion-static [data-header-item] {
+  visibility: visible !important;
+}
+html.motion-static [data-curtain] {
+  display: none;
+}
 
-/* When motion is reduced, or when JavaScript never arrives, show everything. */
-.motion-static [data-anim] {
-  visibility: visible;
+/* Rich article text ------------------------------------------------------ */
+
+.prose-article {
+  font-size: 18px;
+  line-height: 1.75;
+  color: var(--color-onyx);
+}
+.prose-article > * + * {
+  margin-top: 1.25em;
+}
+.prose-article h2 {
+  font-family: var(--font-serif);
+  font-size: clamp(24px, 2.2vw, 28px);
+  line-height: 1.25;
+  font-weight: 500;
+  margin-top: 2em;
+  scroll-margin-top: calc(var(--header-h) + 32px);
+}
+.prose-article ul {
+  list-style: none;
+  padding: 0;
+}
+.prose-article ul li {
+  position: relative;
+  padding-left: 1.5em;
+}
+.prose-article ul li + li {
+  margin-top: 0.5em;
+}
+.prose-article ul li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.85em;
+  width: 0.75em;
+  height: 1px;
+  background: var(--color-emerald);
+}
+.prose-article blockquote {
+  border-left: 2px solid var(--color-emerald);
+  padding: 0.25em 0 0.25em 1.25em;
+  margin-block: 2em;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(21px, 1.9vw, 24px);
+  line-height: 1.45;
+  color: var(--color-forest);
 }
 
 /* Focus ------------------------------------------------------------------ */
 
-/* In the base layer, so a utility such as focus-visible:outline-none on a
-   form field can override it. Unlayered CSS would beat every utility. */
 @layer base {
-  /* Mint on dark surfaces; a light surface sets --focus-color to forest. */
   :focus-visible {
-    outline: 1px solid var(--focus-color, var(--color-mint));
-    outline-offset: 4px;
+    outline: 2px solid var(--focus-color, var(--color-mint));
+    outline-offset: 3px;
   }
 
   ::selection {
-    background-color: var(--color-forest);
-    color: var(--color-bone);
+    background-color: var(--color-mint);
+    color: var(--color-onyx);
   }
-}
 
-/* Marks a bone section, so focus rings there stay visible. */
-.surface-light {
-  --focus-color: var(--color-forest);
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
 }
 
 /* Reduced motion --------------------------------------------------------- */

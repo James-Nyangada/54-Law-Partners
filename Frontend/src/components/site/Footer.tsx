@@ -1,100 +1,121 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef } from "react";
-import { ensureGsap, prefersReducedMotion } from "@/lib/motion";
+import { ensureGsap, prefersReducedMotion, whenRevealed } from "@/lib/motion";
 import { getLenis } from "@/lib/lenis";
-import { FIRM, LEGAL_LINKS, SOCIAL_LINKS } from "@/components/contact/firm";
 import { useLocale } from "@/i18n/useLocale";
 import { LanguageToggle } from "@/i18n/LanguageToggle";
-
-const EASE_CLASS = "ease-[cubic-bezier(0.16,1,0.3,1)]";
+import { FIRM } from "@/content/firm";
+import { LEGAL_DOCS } from "@/content/legal";
+import { PATHS, href } from "@/lib/routes";
 
 /*
  * The wordmark geometry, measured from Source Serif 4: at 131.8 units
- * "54 Law Partners" is 1000 units wide, its tallest glyph rising 89.6 above
- * the baseline and its lowest falling 2.6 below. The view box holds the whole
- * word with a little room beneath it; the rise starts with the word hidden
- * below the bottom edge of that box.
+ * "54 Law Partners" is 1000 units wide, rising 89.6 above the baseline.
  */
-const WORDMARK = { size: 131.8, top: 4, ascent: 89.6, descent: 2.6, foot: 18 };
-const BASELINE = WORDMARK.top + WORDMARK.ascent;
-const VISIBLE = BASELINE + WORDMARK.descent + WORDMARK.foot;
+const MARK = { size: 131.8, top: 4, ascent: 89.6, descent: 2.6, foot: 10 };
+const BASELINE = MARK.top + MARK.ascent;
+const VISIBLE = BASELINE + MARK.descent + MARK.foot;
 
 /**
- * The footer: navigation in two columns, legal links, the practising notice,
- * social links if any, a back-to-top control, and the closing gesture — the
- * full wordmark rising into view from behind the bottom edge of the page.
+ * Four columns (firm, practice, legal, practising details), then the closing
+ * gesture: the wordmark in outline, rising from behind the bottom edge as the
+ * visitor reaches the end of the page, its stroke drawing as it comes.
  */
 export function Footer() {
   const { locale, t } = useLocale();
-  const footerNav = [...t.nav.items, { label: t.nav.reach, href: "#reach" }];
-  const wordmarkRef = useRef<SVGSVGElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
   const riseRef = useRef<SVGGElement>(null);
+  const colsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (prefersReducedMotion()) return;
     const gsap = ensureGsap();
-    const svg = wordmarkRef.current;
+    const svg = svgRef.current;
     const rise = riseRef.current;
-    if (!svg || !rise) return;
+    const cols = colsRef.current;
+    if (!svg || !rise || !cols) return;
 
-    // Tied to the last stretch of scroll: fully risen exactly at the bottom.
-    const tween = gsap.fromTo(
-      rise,
-      { y: VISIBLE },
-      {
-        y: 0,
-        ease: "none",
-        scrollTrigger: { trigger: svg, start: "top bottom", end: "bottom bottom", scrub: true },
-      },
-    );
+    let ctx: gsap.Context | null = null;
+    const cancel = whenRevealed(() => {
+      ctx = gsap.context(() => {
+        gsap.fromTo(
+          rise,
+          { y: VISIBLE * 0.9 },
+          { y: 0, ease: "none", scrollTrigger: { trigger: svg, start: "top bottom", end: "bottom bottom", scrub: 0.6 } },
+        );
+        gsap.fromTo(
+          cols.querySelectorAll("[data-col]"),
+          { autoAlpha: 0, y: 24 },
+          {
+            autoAlpha: 1,
+            y: 0,
+            duration: 0.9,
+            stagger: 0.08,
+            scrollTrigger: { trigger: cols, start: "top 92%", once: true },
+          },
+        );
+      });
+    });
     return () => {
-      tween.scrollTrigger?.kill();
-      tween.kill();
+      cancel();
+      ctx?.revert();
     };
   }, []);
 
   const toTop = () => {
     const lenis = getLenis();
-    if (lenis) lenis.scrollTo(0, { duration: 2 });
+    if (lenis) lenis.scrollTo(0, { duration: 1.8 });
     else window.scrollTo({ top: 0 });
-    document.querySelector<HTMLElement>("#hero a")?.focus({ preventScroll: true });
   };
 
-  return (
-    <footer className="overflow-hidden border-t border-bone/10 bg-onyx text-bone">
-      <div className="grid gap-12 px-[clamp(1.5rem,5vw,7rem)] pb-16 pt-20 lg:grid-cols-12 lg:gap-x-6">
-        <nav aria-label={t.nav.footer} className="lg:col-span-4">
-          <ul className="grid grid-cols-2 gap-x-8 gap-y-3 text-[13px] uppercase tracking-[0.16em]">
-            {footerNav.map((item) => (
-              <li key={item.href}>
-                <a
-                  href={item.href}
-                  className="text-bone/80 transition-colors duration-300 hover:text-mint"
-                >
-                  {item.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
+  const linkClass = "text-[14.5px] text-sage transition-colors duration-300 hover:text-bone";
 
-        <div className="space-y-6 lg:col-span-5">
-          <p className="max-w-[52ch] text-[13px] leading-[1.7] text-sage">{FIRM.practising[locale]}</p>
-          <ul className="flex flex-wrap gap-x-6 gap-y-2 text-[12px] uppercase tracking-[0.16em]">
-            {LEGAL_LINKS.map((link) => (
-              <li key={link.href + link.label.en}>
-                <a href={link.href} className="text-sage transition-colors duration-300 hover:text-mint">
-                  {link.label[locale]}
-                </a>
+  return (
+    <footer id="site-footer" className="surface-dark overflow-hidden border-t border-line-dark bg-onyx text-bone">
+      <div ref={colsRef} className="shell grid gap-x-8 gap-y-12 pb-14 pt-[clamp(56px,7vw,96px)] sm:grid-cols-2 lg:grid-cols-4">
+        <div data-col>
+          <p className="eyebrow text-mint">{t.footer.firm}</p>
+          <ul className="mt-5 space-y-3">
+            <li><Link className={linkClass} href={PATHS.about[locale]}>{t.footer.aboutUs}</Link></li>
+            <li><Link className={linkClass} href={PATHS.people[locale]}>{t.nav.items[2].label}</Link></li>
+            <li><Link className={linkClass} href={PATHS.careers[locale]}>{t.nav.items[4].label}</Link></li>
+          </ul>
+        </div>
+        <div data-col>
+          <p className="eyebrow text-mint">{t.footer.practice}</p>
+          <ul className="mt-5 space-y-3">
+            <li><Link className={linkClass} href={PATHS.practice[locale]}>{t.footer.allAreas}</Link></li>
+            <li><Link className={linkClass} href={PATHS.insights[locale]}>{t.nav.items[3].label}</Link></li>
+            <li><Link className={linkClass} href={PATHS.contact[locale]}>{t.footer.contactUs}</Link></li>
+          </ul>
+        </div>
+        <div data-col>
+          <p className="eyebrow text-mint">{t.footer.legal}</p>
+          <ul className="mt-5 space-y-3">
+            {LEGAL_DOCS.map((doc) => (
+              <li key={doc.id}>
+                <Link className={linkClass} href={href.legal(doc.id, locale)}>
+                  {doc.title[locale]}
+                </Link>
               </li>
             ))}
           </ul>
-          {SOCIAL_LINKS.length > 0 ? (
-            <ul className="flex flex-wrap gap-x-6 text-[12px] uppercase tracking-[0.16em]">
-              {SOCIAL_LINKS.map((link) => (
-                <li key={link.label}>
-                  <a href={link.href} rel="noopener noreferrer" target="_blank" className="text-bone/80 hover:text-mint">
+        </div>
+        <div data-col className="flex flex-col gap-6">
+          <div>
+            <p className="eyebrow text-mint">{t.footer.practising}</p>
+            <p className="mt-5 max-w-[34ch] text-[14.5px] leading-[1.6] text-sage">
+              {FIRM.practising?.[locale] ?? t.footer.practisingDefault}
+            </p>
+          </div>
+          <LanguageToggle />
+          {FIRM.social.length > 0 ? (
+            <ul className="flex gap-5">
+              {FIRM.social.map((link) => (
+                <li key={link.href}>
+                  <a className={linkClass} href={link.href} target="_blank" rel="noopener noreferrer">
                     {link.label}
                   </a>
                 </li>
@@ -102,69 +123,36 @@ export function Footer() {
             </ul>
           ) : null}
         </div>
-
-        {/* The language toggle again, then back to top at the far right. */}
-        <div className="flex flex-wrap items-center gap-x-10 gap-y-6 lg:col-span-3 lg:flex-col lg:items-end lg:justify-start">
-          <LanguageToggle />
-          <button
-            type="button"
-            onClick={toTop}
-            className="group flex items-center gap-4 text-[12px] uppercase tracking-[0.16em] text-bone/80"
-          >
-            {t.footer.backToTop}
-            <span className="relative flex size-12 items-center justify-center overflow-hidden rounded-full border border-bone/30 transition-colors duration-500 group-hover:border-emerald">
-              {/* The arrow leaves upward and a duplicate arrives from below. */}
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 10 14"
-                width="10"
-                height="14"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.2"
-                className={`transition-transform duration-500 ${EASE_CLASS} group-hover:-translate-y-8`}
-              >
-                <path d="M5 13.5V1M1 5l4-4 4 4" />
-              </svg>
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 10 14"
-                width="10"
-                height="14"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.2"
-                className={`absolute translate-y-8 text-mint transition-transform duration-500 ${EASE_CLASS} group-hover:translate-y-0`}
-              >
-                <path d="M5 13.5V1M1 5l4-4 4 4" />
-              </svg>
-            </span>
-          </button>
-        </div>
-
-        <p className="text-[12px] tracking-[0.08em] text-sage/80 lg:col-span-12">
-          {/* The year is baked in at build time and may differ from the
-              visitor's clock on New Year's Day, so a mismatch is expected. */}
-          &copy; <span suppressHydrationWarning>{new Date().getFullYear()}</span> {FIRM.name}
-        </p>
       </div>
 
-      {/* The closing gesture: a signature at the foot of the page. */}
-      <svg
-        ref={wordmarkRef}
-        viewBox={`-8 0 1016 ${VISIBLE}`}
-        role="img"
-        aria-label={FIRM.name}
-        className="block w-full"
-      >
+      <div className="shell flex flex-wrap items-center justify-between gap-4 border-t border-line-dark py-6 text-[13px] text-sage">
+        <p>
+          &copy; <span suppressHydrationWarning>{new Date().getFullYear()}</span> {FIRM.name}. {t.footer.rights}
+        </p>
+        <button type="button" onClick={toTop} className="group flex min-h-11 items-center gap-3 transition-colors duration-300 hover:text-bone">
+          {t.footer.top}
+          <span className="relative flex size-9 items-center justify-center overflow-hidden rounded-[2px] border border-line-raised transition-colors duration-500 group-hover:border-emerald">
+            <svg aria-hidden="true" viewBox="0 0 10 14" width="9" height="13" fill="none" stroke="currentColor" strokeWidth="1.3" className="transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-7">
+              <path d="M5 13.5V1M1 5l4-4 4 4" />
+            </svg>
+            <svg aria-hidden="true" viewBox="0 0 10 14" width="9" height="13" fill="none" stroke="currentColor" strokeWidth="1.3" className="absolute translate-y-7 text-mint transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-y-0">
+              <path d="M5 13.5V1M1 5l4-4 4 4" />
+            </svg>
+          </span>
+        </button>
+      </div>
+
+      <svg ref={svgRef} viewBox={`-8 0 1016 ${VISIBLE}`} role="img" aria-label={FIRM.name} className="block w-full">
         <g ref={riseRef}>
           <text
             x="0"
             y={BASELINE}
             textLength="1000"
             lengthAdjust="spacing"
-            fill="var(--color-bone)"
-            style={{ fontFamily: "var(--font-source-serif), serif", fontSize: WORDMARK.size }}
+            fill="none"
+            stroke="var(--color-emerald)"
+            strokeWidth="0.6"
+            style={{ fontFamily: "var(--font-source-serif), serif", fontSize: MARK.size }}
           >
             {FIRM.name}
           </text>
