@@ -129,6 +129,17 @@ export function Footer() {
         <p>
           &copy; <span suppressHydrationWarning>{new Date().getFullYear()}</span> {FIRM.name}. {t.footer.rights}
         </p>
+        <p>
+          {t.footer.builtBy}{" "}
+          <a
+            href="https://jam3s.netlify.app/"
+            target="_blank"
+            rel="noopener"
+            className="font-medium text-mint underline decoration-mint/40 underline-offset-4 transition-colors duration-300 hover:text-bone hover:decoration-bone"
+          >
+            James.dev
+          </a>
+        </p>
         <button type="button" onClick={toTop} className="group flex min-h-11 items-center gap-3 transition-colors duration-300 hover:text-bone">
           {t.footer.top}
           <span className="relative flex size-9 items-center justify-center overflow-hidden rounded-[2px] border border-line-raised transition-colors duration-500 group-hover:border-emerald">

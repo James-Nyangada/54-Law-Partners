@@ -151,6 +151,7 @@ export const fr: Dictionary = {
     allAreas: "Tous les domaines",
     contactUs: "Nous contacter",
     rights: "Tous droits réservés.",
+    builtBy: "Site conçu par",
     top: "Haut de page",
   },
   about: {

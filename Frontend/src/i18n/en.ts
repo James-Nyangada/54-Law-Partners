@@ -149,6 +149,7 @@ export const en = {
     allAreas: "All practice areas",
     contactUs: "Contact us",
     rights: "All rights reserved.",
+    builtBy: "Website built by",
     top: "Back to top",
   },
   about: {
