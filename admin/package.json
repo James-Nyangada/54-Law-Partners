@@ -1,0 +1,23 @@
+{
+  "name": "54lp-admin",
+  "version": "2.0.0",
+  "private": true,
+  "description": "54 Law Partners — publishing dashboard (Next.js + Tailwind CSS)",
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001"
+  },
+  "engines": {
+    "node": ">=20.9"
+  },
+  "dependencies": {
+    "next": "16.3.5",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "tailwindcss": "^4"
+  }
+}

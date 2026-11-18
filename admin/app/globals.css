@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+/* 54 Law Partners — dashboard theme.
+   Same palette as the public site, so the firm never feels like it has left
+   its own brand when it signs in. Every colour is a Tailwind token: bg-panel,
+   text-mint, border-line-raised and so on. */
+
+@theme {
+  --color-onyx: #0b0e0c;
+  --color-onyx-raised: #11170f;
+  --color-panel: #121a15;
+  --color-forest: #0f3b2a;
+  --color-forest-deep: #0c2b1f;
+  --color-emerald: #1f8a5f;
+  --color-mint: #6fcfa0;
+  --color-mint-bright: #9be0bd;
+  --color-mint-pressed: #4fb185;
+  --color-bone: #f3f2ed;
+  --color-sage: #b9c7bf;
+  --color-muted: #7e8d85;
+  --color-line: #1e2a24;
+  --color-line-raised: #2e4036;
+  --color-danger: #c2554a;
+  --color-danger-text: #e2887e;
+  --color-warning: #d8b26a;
+  --color-disabled: #26332c;
+  --color-disabled-text: #6e7d74;
+
+  --ease-brand: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Fonts come from next/font in app/layout.jsx, which sets these variables. */
+@theme inline {
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-serif), Georgia, serif;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    background: var(--color-onyx);
+    color: var(--color-bone);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a {
+    color: var(--color-mint);
+  }
+  a:hover {
+    color: var(--color-mint-bright);
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-mint);
+    outline-offset: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
